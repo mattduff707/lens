@@ -1,0 +1,33 @@
+import { useQuery } from "@tanstack/react-query";
+import { reviewListQuery } from "../../lib/queries";
+import { ReviewCard } from "../ReviewCard";
+
+export const ReviewList = () => {
+  const { data: reviews = [], isLoading, error } = useQuery(reviewListQuery);
+
+  if (isLoading) {
+    return (
+      <div className="bg-main/5 border border-main/20 rounded-lg p-8 text-center max-w-list mx-auto">
+        <div className="text-main">Loading reviews...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center max-w-list mx-auto">
+        <div className="text-red-400">
+          Failed to load reviews. Please try again.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 max-w-list mx-auto">
+      {reviews.map((review) => (
+        <ReviewCard key={review.id} review={review} showActions={false} />
+      ))}
+    </div>
+  );
+};

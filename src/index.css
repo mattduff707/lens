@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Average Sans";
+  src: url("./assets/fonts/AverageSans/AverageSans-Regular.ttf")
+    format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Corinthia";
+  src: url("./assets/fonts/Corinthia/Corinthia-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Corinthia";
+  src: url("./assets/fonts/Corinthia/Corinthia-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-main: #1a1a1a;
+  --color-secondary: #fff;
+  --color-highlight: #e06c9f;
+  --font-sans: "Average Sans", system-ui, sans-serif;
+  --font-corinthia: "Corinthia", cursive;
+  --container-list: 1000px;
+  --animate-underline-draw: underline-draw 500ms ease-out both;
+
+  /* Reveals the swash left to right so it lands like a single pen stroke. */
+  @keyframes underline-draw {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-underline-draw {
+    animation: none;
+  }
+}
+
+.golden {
+  background: radial-gradient(
+      ellipse farthest-corner at right bottom,
+      #fedb37 0%,
+      #fdb931 8%,
+      #9f7928 30%,
+      #8a6e2f 40%,
+      transparent 80%
+    ),
+    radial-gradient(
+      ellipse farthest-corner at left top,
+      #ffffff 0%,
+      #ffffac 8%,
+      #d1b464 25%,
+      #5d4a1f 62.5%,
+      #5d4a1f 100%
+    );
+}
+
+.shadow-3d {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.shadow-subtle {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0); /* Legacy property for Internet Explorer */
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
