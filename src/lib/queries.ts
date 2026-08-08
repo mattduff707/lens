@@ -5,6 +5,8 @@ import { reviewService } from "./supabase";
 export const reviewKeys = {
   all: ["review"] as const,
   list: () => [...reviewKeys.all, "list"] as const,
+  // Nested under list() so invalidating the list also refreshes this.
+  publishedList: () => [...reviewKeys.all, "list", "published"] as const,
   item: (id: number) => [...reviewKeys.all, "item", id] as const,
   byAlbum: (album: string) => [...reviewKeys.all, "album", album] as const,
   byArtist: (artist: string) => [...reviewKeys.all, "artist", artist] as const,
@@ -16,6 +18,11 @@ export const reviewKeys = {
 export const reviewListQuery = queryOptions({
   queryKey: reviewKeys.list(),
   queryFn: () => reviewService.getAll(),
+});
+
+export const publishedReviewListQuery = queryOptions({
+  queryKey: reviewKeys.publishedList(),
+  queryFn: () => reviewService.getPublished(),
 });
 
 export const reviewItemQuery = (id: number) =>

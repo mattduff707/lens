@@ -45,6 +45,10 @@ const AdminPanelMusic = () => {
     checkAuth();
   }, [navigate]);
 
+  const publishedCount = reviews.filter(
+    (review) => review.status === "published"
+  ).length;
+
   const openModal = (mode: "create" | "edit" | "delete", review?: Review) => {
     setModalState({ isOpen: true, mode, review });
   };
@@ -66,7 +70,7 @@ const AdminPanelMusic = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-list mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -90,6 +94,12 @@ const AdminPanelMusic = () => {
           <div className="text-3xl font-bold text-main">
             {reviewsLoading ? "..." : reviews.length}
           </div>
+          {!reviewsLoading && (
+            <p className="text-main/70 text-sm mt-1">
+              {publishedCount} published · {reviews.length - publishedCount}{" "}
+              draft
+            </p>
+          )}
         </div>
 
         <div className="bg-main/5 border border-main/20 rounded-lg p-6">

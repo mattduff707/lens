@@ -1,9 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { reviewListQuery } from "../../lib/queries";
+import { publishedReviewListQuery } from "../../lib/queries";
 import { ReviewCard } from "../ReviewCard";
 
 export const ReviewList = () => {
-  const { data: reviews = [], isLoading, error } = useQuery(reviewListQuery);
+  const {
+    data: reviews = [],
+    isLoading,
+    error,
+  } = useQuery(publishedReviewListQuery);
 
   if (isLoading) {
     return (
@@ -24,7 +28,7 @@ export const ReviewList = () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 max-w-list mx-auto">
+    <div className="mx-auto grid max-w-list gap-x-12 gap-y-2 md:grid-cols-1 lg:grid-cols-2">
       {reviews.map((review) => (
         <ReviewCard key={review.id} review={review} showActions={false} />
       ))}

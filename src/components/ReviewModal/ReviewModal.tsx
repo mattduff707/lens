@@ -3,12 +3,22 @@ import * as Label from "@radix-ui/react-label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import {
+  type AlbumResult,
+  getArtworkUrl,
+  getTracklist,
+} from "../../lib/itunes";
+import {
   createReviewMutation,
   deleteReviewMutation,
   reviewKeys,
   updateReviewMutation,
 } from "../../lib/queries";
-import { type Review, supabase } from "../../lib/supabase";
+import {
+  type Review,
+  type ReviewStatus,
+  supabase,
+} from "../../lib/supabase";
+import { AlbumSearch } from "../AlbumSearch";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -34,13 +44,19 @@ export const ReviewModal = ({
     tracklist: [""],
     highlights: [""],
     description: "",
-    review_date: new Date().toISOString(),
+    review_date: new Date().toISOString().slice(0, 10),
+    release_date: "",
+    status: "draft" as ReviewStatus,
   });
+
+  const toDateInputValue = (dateString: string) =>
+    dateString ? dateString.slice(0, 10) : "";
 
   // File upload state
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fillingFromSearch, setFillingFromSearch] = useState(false);
 
   // Create mutation
   const createMutation = useMutation({
@@ -80,7 +96,9 @@ export const ReviewModal = ({
       tracklist: [""],
       highlights: [""],
       description: "",
-      review_date: new Date().toISOString(),
+      review_date: new Date().toISOString().slice(0, 10),
+      release_date: "",
+      status: "draft",
     });
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -146,7 +164,9 @@ export const ReviewModal = ({
         tracklist: review.tracklist.length > 0 ? review.tracklist : [""],
         highlights: review.highlights.length > 0 ? review.highlights : [""],
         description: review.description,
-        review_date: review.review_date,
+        review_date: toDateInputValue(review.review_date),
+        release_date: toDateInputValue(review.release_date),
+        status: review.status,
       });
     } else if (mode === "create") {
       // Reset form for create mode
@@ -158,7 +178,9 @@ export const ReviewModal = ({
         tracklist: [""],
         highlights: [""],
         description: "",
-        review_date: new Date().toISOString(),
+        review_date: new Date().toISOString().slice(0, 10),
+        release_date: "",
+        status: "draft",
       });
     }
   }, [review, mode]);
@@ -183,6 +205,46 @@ export const ReviewModal = ({
     } = supabase.storage.from("album-covers").getPublicUrl(data.path);
 
     return publicUrl;
+  };
+
+  // Fill the form from an iTunes search result. Rating, description and
+  // review_date are left alone since they are the reviewer's own input.
+  const handleAlbumSelect = async (album: AlbumResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      album: album.album,
+      artist: [album.artist],
+      release_date: album.releaseDate,
+    }));
+
+    setFillingFromSearch(true);
+
+    // Metadata lookups are best effort: a failure here still leaves the
+    // reviewer with the fields that were filled above.
+    try {
+      const tracks = await getTracklist(album.id);
+      if (tracks.length > 0) {
+        setFormData((prev) => ({ ...prev, tracklist: tracks }));
+      }
+    } catch (error) {
+      console.error("Tracklist lookup failed:", error);
+    }
+
+    try {
+      if (album.artworkUrl) {
+        const response = await fetch(getArtworkUrl(album.artworkUrl));
+        const blob = await response.blob();
+        const file = new File([blob], `${album.id}.jpg`, { type: blob.type });
+
+        clearPreview();
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+      }
+    } catch (error) {
+      console.error("Artwork download failed:", error);
+    } finally {
+      setFillingFromSearch(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -304,6 +366,12 @@ export const ReviewModal = ({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Album Search */}
+              <AlbumSearch
+                onSelect={handleAlbumSelect}
+                disabled={fillingFromSearch}
+              />
+
               {/* Album Name */}
               <div>
                 <Label.Root
@@ -386,6 +454,29 @@ export const ReviewModal = ({
                   <option value={4}>4 - Very Good</option>
                   <option value={5}>5 - Excellent</option>
                 </select>
+              </div>
+
+              {/* Release Date */}
+              <div>
+                <Label.Root
+                  htmlFor="release_date"
+                  className="block text-main font-medium mb-2"
+                >
+                  Release Date
+                </Label.Root>
+                <input
+                  id="release_date"
+                  type="date"
+                  value={formData.release_date}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      release_date: e.target.value,
+                    }))
+                  }
+                  required
+                  className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
+                />
               </div>
 
               {/* Album Cover Upload */}
@@ -532,6 +623,30 @@ export const ReviewModal = ({
                   className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors resize-vertical"
                   placeholder="Write your review description..."
                 />
+              </div>
+
+              {/* Status */}
+              <div>
+                <Label.Root
+                  htmlFor="status"
+                  className="block text-main font-medium mb-2"
+                >
+                  Status
+                </Label.Root>
+                <select
+                  id="status"
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      status: e.target.value as ReviewStatus,
+                    }))
+                  }
+                  className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
+                >
+                  <option value="draft">Draft - only visible in admin</option>
+                  <option value="published">Published - live on the site</option>
+                </select>
               </div>
 
               {/* Form Actions */}

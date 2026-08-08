@@ -36,9 +36,13 @@ export interface Review {
   artist: string[];
   description: string;
   review_date: string; // Date as ISO string
+  release_date: string; // Album release date as ISO string
+  status: ReviewStatus; // Drafts are hidden from the public site by RLS
   created_at: string;
   updated_at: string;
 }
+
+export type ReviewStatus = "draft" | "published";
 
 // CRUD service for review table
 export const reviewService = {
@@ -47,6 +51,20 @@ export const reviewService = {
     const { data, error } = await supabase
       .from("review")
       .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data as Review[];
+  },
+
+  // Get published reviews only.
+  // RLS already hides drafts from anonymous visitors; this filter also keeps
+  // them off the public page while an admin is signed in.
+  async getPublished() {
+    const { data, error } = await supabase
+      .from("review")
+      .select("*")
+      .eq("status", "published")
       .order("created_at", { ascending: false });
 
     if (error) throw error;

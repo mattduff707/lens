@@ -57,7 +57,7 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-list mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-main mb-2">Admin Panel</h1>

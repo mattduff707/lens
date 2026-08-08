@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { authService } from "../../lib/supabase";
+import { motion, useReducedMotion } from "framer-motion";
 import { CursiveUnderline } from "../CursiveUnderline";
 import { LensLogo } from "../LensLogo";
 import { VisuallyHidden } from "../VisuallyHidden";
@@ -9,34 +8,15 @@ const linkClassName = "font-corinthia text-5xl text-main";
 
 const activeLinkClassName = "";
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const isDev = import.meta.env.DEV;
+
 export const Navbar = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check initial auth state
-    const checkAuth = async () => {
-      try {
-        const { data } = await authService.getCurrentUser();
-        setIsAuthenticated(!!data.user);
-      } catch {
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = authService.onAuthStateChange((_event: string, session: unknown) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <div className=" ">
@@ -47,15 +27,27 @@ export const Navbar = () => {
         <LensLogo className="w-[500px]" />
       </div>
       <div className="flex justify-center">
-        <p className="text-center text-base text-main/70 max-w-[500px]">
+        <motion.p
+          className="text-center text-base text-main/70 max-w-[500px]"
+          variants={fadeUp}
+          initial={prefersReducedMotion ? false : "hidden"}
+          animate="visible"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           Everything you see here is a piece of work I feel positively about. A
           1 star review is not a negative, it is just means it met the minimum
           threshold of enjoyment for me. If something is not here, it simply
           means I have not experienced it or it wasn't to my taste.
-        </p>
+        </motion.p>
       </div>
       <nav className="px-6 pt-6 w-[300px] mx-auto">
-        <ul className="flex items-center justify-center">
+        <motion.ul
+          className="flex items-center justify-center"
+          variants={fadeUp}
+          initial={prefersReducedMotion ? false : "hidden"}
+          animate="visible"
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+        >
           <li className="border-r-1 border-main/20 w-[120px] flex justify-end pr-4">
             <Link
               to="/"
@@ -89,19 +81,18 @@ export const Navbar = () => {
               )}
             </Link>
           </li>
-          {/* {!loading && isAuthenticated && (
-            <li>
-              <Link
-                to="/admin-panel"
-                className={linkClassName}
-                activeProps={{ className: activeLinkClassName }}
-              >
-                Admin Panel
-              </Link>
-            </li>
-          )} */}
-        </ul>
+        </motion.ul>
       </nav>
+      {isDev && (
+        <div className="flex justify-center pt-4">
+          <Link
+            to="/admin-panel"
+            className="text-xs tracking-wide text-main/40 transition-colors hover:text-main"
+          >
+            Admin
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
