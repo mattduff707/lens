@@ -34,6 +34,8 @@
   --container-list: 1000px;
   --animate-underline-draw: underline-draw 500ms ease-out both;
 
+  --animate-cursive-write: cursive-write 2.6s ease-in-out infinite;
+
   /* Reveals the swash left to right so it lands like a single pen stroke. */
   @keyframes underline-draw {
     from {
@@ -43,11 +45,33 @@
       clip-path: inset(0 0 0 0);
     }
   }
+
+  /*
+   * Writes the flourish on, then lets it trail away from the start, so the
+   * loop reads as a pen still moving rather than a line blinking out.
+   * Paired with pathLength="1" so the offsets are resolution independent.
+   */
+  @keyframes cursive-write {
+    0% {
+      stroke-dashoffset: 1;
+    }
+    55% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: -1;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-underline-draw {
     animation: none;
+  }
+
+  .animate-cursive-write {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }
 

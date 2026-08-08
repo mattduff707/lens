@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { publishedReviewListQuery } from "../../lib/queries";
+import { Loader } from "../Loader";
 import { ReviewCard } from "../ReviewCard";
 
 export const ReviewList = () => {
@@ -11,8 +12,8 @@ export const ReviewList = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-main/5 border border-main/20 rounded-lg p-8 text-center max-w-list mx-auto">
-        <div className="text-main">Loading reviews...</div>
+      <div className="mx-auto max-w-list py-16">
+        <Loader label="Loading reviews" />
       </div>
     );
   }
