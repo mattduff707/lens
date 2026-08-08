@@ -122,7 +122,7 @@ export function LensLogo({
       viewBox="52 273 495 211"
       fill="none"
       preserveAspectRatio="xMidYMid meet"
-      className={["lens-logo text-[#222222]", className]
+      className={["lens-logo text-main", className]
         .filter(Boolean)
         .join(" ")}
       aria-label="Lens"

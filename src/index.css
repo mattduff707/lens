@@ -26,15 +26,16 @@
 }
 
 @theme {
-  --color-main: #1a1a1a;
-  --color-secondary: #fff;
-  --color-highlight: #e06c9f;
+  --color-main: #2a2118;
+  --color-secondary: #f4f0ec;
+  --color-highlight: #478800;
+  --color-special: #d4af37;
   --font-sans: "Average Sans", system-ui, sans-serif;
   --font-corinthia: "Corinthia", cursive;
   --container-list: 1000px;
   --animate-underline-draw: underline-draw 500ms ease-out both;
-
   --animate-cursive-write: cursive-write 2.6s ease-in-out infinite;
+  --animate-star-wave: star-wave 1.2s ease-in-out infinite;
 
   /* Reveals the swash left to right so it lands like a single pen stroke. */
   @keyframes underline-draw {
@@ -62,6 +63,23 @@
       stroke-dashoffset: -1;
     }
   }
+
+  @keyframes star-wave {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.28rem);
+    }
+  }
+}
+
+@layer base {
+  body {
+    color: var(--color-main);
+    font-family: var(--font-sans);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -72,6 +90,10 @@
   .animate-cursive-write {
     animation: none;
     stroke-dashoffset: 0;
+  }
+
+  .animate-star-wave {
+    animation: none;
   }
 }
 
@@ -110,4 +132,8 @@
   clip: rect(0 0 0 0); /* Legacy property for Internet Explorer */
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+html {
+  background-color: var(--color-secondary);
 }

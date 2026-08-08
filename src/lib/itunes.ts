@@ -7,9 +7,8 @@ const ITUNES_API = "https://itunes.apple.com";
 const SINGLE_OR_EP = /\s-\s(Single|EP)$/i;
 const MIN_ALBUM_TRACKS = 4;
 
-// Overfetch, since filtering happens client side.
-const SEARCH_LIMIT = 50;
-const MAX_RESULTS = 12;
+// Overfetch, since filtering happens client side. iTunes caps search at 200.
+const SEARCH_LIMIT = 200;
 
 export interface AlbumResult {
   id: number;
@@ -144,13 +143,11 @@ export const searchAlbums = async (
 
   const seen = new Set<number>();
 
-  return [...byTitle, ...byArtist]
-    .filter((album) => {
-      if (seen.has(album.id)) return false;
-      seen.add(album.id);
-      return true;
-    })
-    .slice(0, MAX_RESULTS);
+  return [...byTitle, ...byArtist].filter((album) => {
+    if (seen.has(album.id)) return false;
+    seen.add(album.id);
+    return true;
+  });
 };
 
 export const getTracklist = async (

@@ -10,15 +10,21 @@ interface AlbumSearchProps {
 
 const MIN_TERM_LENGTH = 2;
 const DEBOUNCE_MS = 300;
+const PAGE_SIZE = 20;
 
 export const AlbumSearch = ({ onSelect, disabled }: AlbumSearchProps) => {
   const [term, setTerm] = useState("");
   const [debouncedTerm, setDebouncedTerm] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedTerm(term.trim()), DEBOUNCE_MS);
     return () => clearTimeout(timeout);
   }, [term]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [debouncedTerm]);
 
   const {
     data: results = [],
@@ -35,9 +41,12 @@ export const AlbumSearch = ({ onSelect, disabled }: AlbumSearchProps) => {
     onSelect(album);
     setTerm("");
     setDebouncedTerm("");
+    setVisibleCount(PAGE_SIZE);
   };
 
   const showResults = debouncedTerm.length >= MIN_TERM_LENGTH;
+  const visibleResults = results.slice(0, visibleCount);
+  const hasMore = visibleCount < results.length;
 
   return (
     <div>
@@ -69,37 +78,50 @@ export const AlbumSearch = ({ onSelect, disabled }: AlbumSearchProps) => {
               {isFetching ? "Searching..." : "No albums found."}
             </p>
           ) : (
-            <ul>
-              {results.map((album) => (
-                <li key={album.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(album)}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-main/5"
-                  >
-                    {album.artworkUrl && (
-                      <img
-                        src={album.artworkUrl}
-                        alt=""
-                        className="h-12 w-12 shrink-0 rounded object-cover"
-                      />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-main">
-                        {album.album}
+            <>
+              <ul>
+                {visibleResults.map((album) => (
+                  <li key={album.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(album)}
+                      className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-main/5"
+                    >
+                      {album.artworkUrl && (
+                        <img
+                          src={album.artworkUrl}
+                          alt=""
+                          className="h-12 w-12 shrink-0 rounded object-cover"
+                        />
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-main">
+                          {album.album}
+                        </span>
+                        <span className="block truncate text-sm text-main/60">
+                          {album.artist}
+                        </span>
                       </span>
-                      <span className="block truncate text-sm text-main/60">
-                        {album.artist}
+                      <span className="shrink-0 text-xs text-main/40">
+                        {album.releaseDate.slice(0, 4)}
+                        {album.trackCount > 0 && ` · ${album.trackCount} tracks`}
                       </span>
-                    </span>
-                    <span className="shrink-0 text-xs text-main/40">
-                      {album.releaseDate.slice(0, 4)}
-                      {album.trackCount > 0 && ` · ${album.trackCount} tracks`}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {hasMore && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleCount((count) => count + PAGE_SIZE)
+                  }
+                  className="w-full border-t border-main/10 px-4 py-2.5 text-sm text-main/60 transition-colors hover:bg-main/5 hover:text-main"
+                >
+                  Show more ({results.length - visibleCount} remaining)
+                </button>
+              )}
+            </>
           )}
         </div>
       )}

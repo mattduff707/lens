@@ -1,4 +1,5 @@
 import { type Review } from "../../lib/supabase";
+import { RatingStars } from "../RatingStars";
 
 interface ReviewCardProps {
   review: Review;
@@ -14,10 +15,7 @@ export const ReviewCard = ({
   showActions = false,
 }: ReviewCardProps) => {
   const formatDate = (dateString: string) => {
-    const [year, month, day] = dateString
-      .slice(0, 10)
-      .split("-")
-      .map(Number);
+    const [year, month, day] = dateString.slice(0, 10).split("-").map(Number);
     return new Date(year, month - 1, day).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -26,7 +24,7 @@ export const ReviewCard = ({
   };
 
   return (
-    <article className="group border-t border-main/15 pt-6">
+    <article className="group pt-6">
       <div className="flex gap-5">
         {review.album_cover && (
           <div className="shrink-0">
@@ -44,27 +42,15 @@ export const ReviewCard = ({
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-4">
             <div className="min-w-0">
-              <h3 className="truncate text-lg tracking-tight text-main">
+              <h3 className="text-lg font-bold tracking-tight text-main">
                 {review.album}
               </h3>
-              <p className="mt-0.5 text-sm text-main/55">
+              <p className="mt-0.5 text-sm text-main/75">
                 {review.artist.join(", ")}
               </p>
             </div>
 
-            <div
-              className="flex shrink-0 items-center gap-0.5 text-sm tracking-[0.2em] text-highlight"
-              aria-label={`${review.rating} out of 5 stars`}
-            >
-              {Array.from({ length: 5 }, (_, i) => (
-                <span
-                  key={i}
-                  className={i < review.rating ? "text-highlight" : "text-main/20"}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
+            <RatingStars rating={review.rating} />
           </div>
 
           {review.description && (
@@ -85,7 +71,7 @@ export const ReviewCard = ({
               {review.release_date && (
                 <time
                   dateTime={review.release_date}
-                  className="text-xs tracking-wide text-main/40"
+                  className="text-xs tracking-wide text-main/60"
                 >
                   Released {formatDate(review.release_date)}
                 </time>

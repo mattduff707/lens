@@ -21,10 +21,10 @@ const layoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "layout",
   component: () => (
-    <div className="h-full grid grid-rows-[auto_1fr] border-1 bg-secondary">
+    <div className="min-h-full grid grid-rows-[auto_1fr] bg-secondary">
       <Navbar />
-      <main className="p-4 bg-secondary h-full">
-        <div className="rounded-[24px] bg-secondary p-4 h-full overflow-auto">
+      <main className="bg-secondary">
+        <div className=" bg-secondary p-4">
           <Outlet />
         </div>
       </main>
