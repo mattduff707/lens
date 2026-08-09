@@ -1,0 +1,1 @@
+export { PaletteControl } from "./PaletteControl";

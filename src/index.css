@@ -82,7 +82,20 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+html {
+  background-color: var(--color-secondary);
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --color-main: #ebe6e0;
+  --color-secondary: #1c1814;
+  --color-highlight: #6bb320;
+  --color-special: #e0c45c;
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce), html[data-animations="off"] {
   .animate-underline-draw {
     animation: none;
   }
@@ -94,6 +107,17 @@
 
   .animate-star-wave {
     animation: none;
+  }
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -132,8 +156,4 @@
   clip: rect(0 0 0 0); /* Legacy property for Internet Explorer */
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-html {
-  background-color: var(--color-secondary);
 }

@@ -1,5 +1,6 @@
 import type { SVGProps } from "react";
 import { useId, useLayoutEffect, useRef } from "react";
+import { useUiStore } from "../../store/ui";
 
 type LensLogoProps = SVGProps<SVGSVGElement> & {
   /** Draw letters in sequence on mount. Default true. */
@@ -62,6 +63,8 @@ export function LensLogo({
 }: LensLogoProps) {
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
+  const enableAnimations = useUiStore((s) => s.enableAnimations);
+  const shouldAnimate = animate && enableAnimations;
 
   useLayoutEffect(() => {
     const svg = svgRef.current;
@@ -69,8 +72,6 @@ export function LensLogo({
 
     const wipes = [...svg.querySelectorAll<SVGRectElement>("[data-wipe]")];
     const glyphs = [...svg.querySelectorAll<SVGPathElement>("[data-glyph]")];
-    const reduced =
-      !animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const running: Animation[] = [];
     let startAt = 0;
@@ -88,7 +89,7 @@ export function LensLogo({
         wipe.setAttribute("height", `${box.height + pad * 2}`);
       }
 
-      if (reduced) {
+      if (!shouldAnimate) {
         wipe.style.transform = "none";
         return;
       }
@@ -113,7 +114,7 @@ export function LensLogo({
     });
 
     return () => running.forEach((a) => a.cancel());
-  }, [animate]);
+  }, [shouldAnimate]);
 
   return (
     <svg
@@ -150,7 +151,7 @@ export function LensLogo({
                     style={{
                       transformBox: "fill-box",
                       transformOrigin: "left center",
-                      transform: animate ? "scaleX(0)" : undefined,
+                      transform: shouldAnimate ? "scaleX(0)" : undefined,
                     }}
                   />
                 </clipPath>

@@ -4,6 +4,7 @@ import {
   createRouter,
   Outlet,
 } from "@tanstack/react-router";
+import { CornerControls } from "../components/CornerControls";
 import { Navbar } from "../components/Navbar";
 import AdminLogin from "../pages/AdminLogin";
 import AdminPanel from "../pages/AdminPanel";
@@ -22,6 +23,7 @@ const layoutRoute = createRoute({
   id: "layout",
   component: () => (
     <div className="min-h-full grid grid-rows-[auto_1fr] bg-secondary">
+      <CornerControls />
       <Navbar />
       <main className="bg-secondary">
         <div className=" bg-secondary p-4">

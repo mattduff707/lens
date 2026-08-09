@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useUiStore } from "../../store/ui";
 import { CursiveUnderline } from "../CursiveUnderline";
 import { LensLogo } from "../LensLogo";
 import { RatingStars } from "../RatingStars";
@@ -9,15 +10,15 @@ const linkClassName = "font-corinthia text-5xl text-main";
 
 const activeLinkClassName = "";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0 },
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
 };
 
 const isDev = import.meta.env.DEV;
 
 export const Navbar = () => {
-  const prefersReducedMotion = useReducedMotion();
+  const enableAnimations = useUiStore((s) => s.enableAnimations);
 
   return (
     <div className=" ">
@@ -30,10 +31,10 @@ export const Navbar = () => {
       <div className="flex justify-center">
         <motion.p
           className="text-center text-base text-main/70 max-w-[764px] px-4"
-          variants={fadeUp}
-          initial={prefersReducedMotion ? false : "hidden"}
+          variants={fadeIn}
+          initial={enableAnimations ? "hidden" : false}
           animate="visible"
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         >
           Everything you see here is a piece of work I feel positively about. A{" "}
           <RatingStars
@@ -51,10 +52,10 @@ export const Navbar = () => {
       <nav className="px-6 pt-6 w-[300px] mx-auto">
         <motion.ul
           className="flex items-center justify-center"
-          variants={fadeUp}
-          initial={prefersReducedMotion ? false : "hidden"}
+          variants={fadeIn}
+          initial={enableAnimations ? "hidden" : false}
           animate="visible"
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
         >
           <li className="border-r-1 border-main/20 w-[120px] flex justify-end pr-4">
             <Link

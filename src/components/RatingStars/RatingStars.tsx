@@ -1,4 +1,5 @@
 import { type Review } from "../../lib/supabase";
+import { useUiStore } from "../../store/ui";
 import { cn } from "../../util/style";
 
 const VISIBLE_STARS = 4;
@@ -15,6 +16,7 @@ export const RatingStars = ({
   className,
   filledOnly = false,
 }: RatingStarsProps) => {
+  const enableAnimations = useUiStore((s) => s.enableAnimations);
   const isPerfect = rating === 5;
   const starCount =
     filledOnly && !isPerfect
@@ -38,13 +40,15 @@ export const RatingStars = ({
             key={i}
             className={
               isPerfect
-                ? "animate-star-wave text-special"
+                ? cn("text-special", enableAnimations && "animate-star-wave")
                 : filled
                   ? "text-highlight"
                   : "text-transparent"
             }
             style={
-              isPerfect ? { animationDelay: `${i * 0.12}s` } : undefined
+              isPerfect && enableAnimations
+                ? { animationDelay: `${i * 0.12}s` }
+                : undefined
             }
           >
             ★
