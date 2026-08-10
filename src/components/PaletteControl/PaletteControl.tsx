@@ -42,6 +42,9 @@ export const PaletteControl = () => (
         sideOffset={12}
         className="z-50 w-48 rounded-sm border border-main/15 bg-secondary p-3 shadow-subtle data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
       >
+        <p className="mb-2.5 text-sm font-medium tracking-wide text-main/60">
+          Storied Colors
+        </p>
         <ul className="flex flex-col gap-2.5">
           {COLORS.map((color) => (
             <li key={color.hex}>

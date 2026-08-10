@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { publishedReviewListQuery } from "../../lib/queries";
-import { useUiStore } from "../../store/ui";
+import type { Review } from "../../lib/supabase";
+import { type ReviewSortOption, useUiStore } from "../../store/ui";
 import { Loader } from "../Loader";
 import { ReviewCard } from "../ReviewCard";
-import { ReviewSearch } from "../ReviewSearch";
+import { ReviewControls } from "../ReviewControls";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -17,8 +18,31 @@ const listTransition = {
   ease: "easeOut" as const,
 };
 
+const compareReviews = (
+  a: Review,
+  b: Review,
+  sort: ReviewSortOption
+): number => {
+  switch (sort) {
+    case "release-desc":
+      return b.release_date.localeCompare(a.release_date);
+    case "release-asc":
+      return a.release_date.localeCompare(b.release_date);
+    case "rating-desc":
+      return b.rating - a.rating;
+    case "rating-asc":
+      return a.rating - b.rating;
+    case "title-asc":
+      return a.album.localeCompare(b.album);
+    case "title-desc":
+      return b.album.localeCompare(a.album);
+  }
+};
+
 export const ReviewList = () => {
   const enableAnimations = useUiStore((s) => s.enableAnimations);
+  const sort = useUiStore((s) => s.reviewSort);
+  const setReviewSort = useUiStore((s) => s.setReviewSort);
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const {
     data: reviews = [],
@@ -54,10 +78,13 @@ export const ReviewList = () => {
     );
   });
 
+  const sorted = [...filtered].sort((a, b) => compareReviews(a, b, sort));
+  const listKey = `${sort}:${debouncedTerm || "all"}`;
+
   const list =
-    filtered.length === 0 ? (
+    sorted.length === 0 ? (
       <motion.p
-        key="empty"
+        key={`empty:${listKey}`}
         className="text-sm text-main/60"
         initial={enableAnimations ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
@@ -68,14 +95,14 @@ export const ReviewList = () => {
       </motion.p>
     ) : (
       <motion.div
-        key={debouncedTerm || "all"}
+        key={listKey}
         className="grid gap-x-12 gap-y-8 lg:grid-cols-2"
         initial={enableAnimations ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
         exit={enableAnimations ? { opacity: 0 } : undefined}
         transition={listTransition}
       >
-        {filtered.map((review) => (
+        {sorted.map((review) => (
           <motion.div
             key={review.id}
             variants={fadeUp}
@@ -93,7 +120,11 @@ export const ReviewList = () => {
 
   return (
     <div className="mx-auto flex max-w-list flex-col pb-12">
-      <ReviewSearch onDebouncedChange={setDebouncedTerm} />
+      <ReviewControls
+        onDebouncedChange={setDebouncedTerm}
+        sort={sort}
+        onSortChange={setReviewSort}
+      />
 
       {enableAnimations ? (
         <AnimatePresence mode="wait">{list}</AnimatePresence>

@@ -27,10 +27,10 @@ export const AnimationsToggle = () => {
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content
-          side="bottom"
-          align="start"
-          sideOffset={-2}
-          className="select-none rounded-sm bg-main px-2 py-1 text-xs tracking-wide text-secondary shadow-subtle data-[state=delayed-open]:animate-[tooltip-in_160ms_ease-out] data-[state=instant-open]:animate-[tooltip-in_160ms_ease-out]"
+          side="right"
+          align="center"
+          sideOffset={4}
+          className="z-50 select-none rounded-sm bg-main px-2 py-1 text-xs tracking-wide text-secondary shadow-subtle data-[state=delayed-open]:animate-[tooltip-in_160ms_ease-out] data-[state=instant-open]:animate-[tooltip-in_160ms_ease-out]"
         >
           Animations
           <Tooltip.Arrow className="fill-main" width={8} height={4} />

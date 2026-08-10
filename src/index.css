@@ -95,6 +95,10 @@ html[data-theme="dark"] {
   color-scheme: dark;
 }
 
+button {
+  cursor: pointer;
+}
+
 @media (prefers-reduced-motion: reduce), html[data-animations="off"] {
   .animate-underline-draw {
     animation: none;

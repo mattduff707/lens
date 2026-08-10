@@ -3,17 +3,43 @@ import { persist } from "zustand/middleware";
 
 export type Theme = "light" | "dark";
 
+export type ReviewSortOption =
+  | "release-desc"
+  | "release-asc"
+  | "rating-desc"
+  | "rating-asc"
+  | "title-asc"
+  | "title-desc";
+
+const REVIEW_SORT_OPTIONS: readonly ReviewSortOption[] = [
+  "release-desc",
+  "release-asc",
+  "rating-desc",
+  "rating-asc",
+  "title-asc",
+  "title-desc",
+] as const;
+
+const DEFAULT_REVIEW_SORT: ReviewSortOption = "release-desc";
+
+const isReviewSortOption = (value: unknown): value is ReviewSortOption =>
+  typeof value === "string" &&
+  (REVIEW_SORT_OPTIONS as readonly string[]).includes(value);
+
 type UiStore = {
   enableAnimations: boolean;
   theme: Theme;
+  reviewSort: ReviewSortOption;
   setEnableAnimations: (enableAnimations: boolean) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  setReviewSort: (reviewSort: ReviewSortOption) => void;
 };
 
 type PersistedUi = {
   enableAnimations?: boolean;
   theme?: Theme;
+  reviewSort?: ReviewSortOption;
 };
 
 const STORAGE_KEY = "lens-ui";
@@ -51,23 +77,31 @@ const resolveInitialAnimations = (): boolean => {
   return !prefersReducedMotion();
 };
 
+const resolveInitialReviewSort = (): ReviewSortOption => {
+  const stored = readPersistedUi()?.reviewSort;
+  return isReviewSortOption(stored) ? stored : DEFAULT_REVIEW_SORT;
+};
+
 export const useUiStore = create<UiStore>()(
   persist(
     (set) => ({
       enableAnimations: resolveInitialAnimations(),
       theme: resolveInitialTheme(),
+      reviewSort: resolveInitialReviewSort(),
       setEnableAnimations: (enableAnimations) => set({ enableAnimations }),
       setTheme: (theme) => set({ theme }),
       toggleTheme: () =>
         set((state) => ({
           theme: state.theme === "light" ? "dark" : "light",
         })),
+      setReviewSort: (reviewSort) => set({ reviewSort }),
     }),
     {
       name: STORAGE_KEY,
       partialize: (state) => ({
         enableAnimations: state.enableAnimations,
         theme: state.theme,
+        reviewSort: state.reviewSort,
       }),
     }
   )
