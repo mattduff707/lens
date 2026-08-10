@@ -11,6 +11,8 @@ export type ReviewSortOption =
   | "title-asc"
   | "title-desc";
 
+export type RatingFilterValue = 1 | 2 | 3 | 4 | 5 | null;
+
 const REVIEW_SORT_OPTIONS: readonly ReviewSortOption[] = [
   "release-desc",
   "release-asc",
@@ -26,20 +28,26 @@ const isReviewSortOption = (value: unknown): value is ReviewSortOption =>
   typeof value === "string" &&
   (REVIEW_SORT_OPTIONS as readonly string[]).includes(value);
 
+const isRatingFilterValue = (value: unknown): value is RatingFilterValue =>
+  value === null || (typeof value === "number" && value >= 1 && value <= 5);
+
 type UiStore = {
   enableAnimations: boolean;
   theme: Theme;
   reviewSort: ReviewSortOption;
+  reviewRatingFilter: RatingFilterValue;
   setEnableAnimations: (enableAnimations: boolean) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   setReviewSort: (reviewSort: ReviewSortOption) => void;
+  setReviewRatingFilter: (rating: RatingFilterValue) => void;
 };
 
 type PersistedUi = {
   enableAnimations?: boolean;
   theme?: Theme;
   reviewSort?: ReviewSortOption;
+  reviewRatingFilter?: RatingFilterValue;
 };
 
 const STORAGE_KEY = "lens-ui";
@@ -82,12 +90,18 @@ const resolveInitialReviewSort = (): ReviewSortOption => {
   return isReviewSortOption(stored) ? stored : DEFAULT_REVIEW_SORT;
 };
 
+const resolveInitialRatingFilter = (): RatingFilterValue => {
+  const stored = readPersistedUi()?.reviewRatingFilter;
+  return isRatingFilterValue(stored) ? stored : null;
+};
+
 export const useUiStore = create<UiStore>()(
   persist(
     (set) => ({
       enableAnimations: resolveInitialAnimations(),
       theme: resolveInitialTheme(),
       reviewSort: resolveInitialReviewSort(),
+      reviewRatingFilter: resolveInitialRatingFilter(),
       setEnableAnimations: (enableAnimations) => set({ enableAnimations }),
       setTheme: (theme) => set({ theme }),
       toggleTheme: () =>
@@ -95,6 +109,7 @@ export const useUiStore = create<UiStore>()(
           theme: state.theme === "light" ? "dark" : "light",
         })),
       setReviewSort: (reviewSort) => set({ reviewSort }),
+      setReviewRatingFilter: (reviewRatingFilter) => set({ reviewRatingFilter }),
     }),
     {
       name: STORAGE_KEY,
@@ -102,6 +117,7 @@ export const useUiStore = create<UiStore>()(
         enableAnimations: state.enableAnimations,
         theme: state.theme,
         reviewSort: state.reviewSort,
+        reviewRatingFilter: state.reviewRatingFilter,
       }),
     }
   )

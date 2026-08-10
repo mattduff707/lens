@@ -3,7 +3,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { publishedReviewListQuery } from "../../lib/queries";
 import type { Review } from "../../lib/supabase";
-import { type ReviewSortOption, useUiStore } from "../../store/ui";
+import {
+  type RatingFilterValue,
+  type ReviewSortOption,
+  useUiStore,
+} from "../../store/ui";
 import { Loader } from "../Loader";
 import { ReviewCard } from "../ReviewCard";
 import { ReviewControls } from "../ReviewControls";
@@ -39,11 +43,33 @@ const compareReviews = (
   }
 };
 
+const matchesSearchTerm = (review: Review, term: string): boolean => {
+  if (!term) return true;
+  const q = term.toLowerCase();
+  return (
+    review.album.toLowerCase().includes(q) ||
+    review.artist.some((a) => a.toLowerCase().includes(q)) ||
+    review.tracklist.some((track) => track.toLowerCase().includes(q))
+  );
+};
+
+const matchesRating = (
+  review: Review,
+  ratingFilter: RatingFilterValue
+): boolean => {
+  if (ratingFilter === null) return true;
+  return review.rating === ratingFilter;
+};
+
 export const ReviewList = () => {
   const enableAnimations = useUiStore((s) => s.enableAnimations);
   const sort = useUiStore((s) => s.reviewSort);
   const setReviewSort = useUiStore((s) => s.setReviewSort);
+  const ratingFilter = useUiStore((s) => s.reviewRatingFilter);
+  const setRatingFilter = useUiStore((s) => s.setReviewRatingFilter);
+
   const [debouncedTerm, setDebouncedTerm] = useState("");
+
   const {
     data: reviews = [],
     isLoading,
@@ -68,23 +94,22 @@ export const ReviewList = () => {
     );
   }
 
-  const filtered = reviews.filter((review) => {
-    if (!debouncedTerm) return true;
-    const q = debouncedTerm.toLowerCase();
-    return (
-      review.album.toLowerCase().includes(q) ||
-      review.artist.some((a) => a.toLowerCase().includes(q)) ||
-      review.tracklist.some((track) => track.toLowerCase().includes(q))
-    );
-  });
+  const filtered = reviews.filter(
+    (review) =>
+      matchesSearchTerm(review, debouncedTerm) &&
+      matchesRating(review, ratingFilter)
+  );
 
   const sorted = [...filtered].sort((a, b) => compareReviews(a, b, sort));
-  const listKey = `${sort}:${debouncedTerm || "all"}`;
+
+  const filterKey = [sort, debouncedTerm || "all", ratingFilter ?? "all"].join(
+    ":"
+  );
 
   const list =
     sorted.length === 0 ? (
       <motion.p
-        key={`empty:${listKey}`}
+        key={`empty:${filterKey}`}
         className="text-sm text-main/60"
         initial={enableAnimations ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
@@ -95,7 +120,7 @@ export const ReviewList = () => {
       </motion.p>
     ) : (
       <motion.div
-        key={listKey}
+        key={filterKey}
         className="grid gap-x-12 gap-y-8 lg:grid-cols-2"
         initial={enableAnimations ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
@@ -124,6 +149,8 @@ export const ReviewList = () => {
         onDebouncedChange={setDebouncedTerm}
         sort={sort}
         onSortChange={setReviewSort}
+        ratingFilter={ratingFilter}
+        onRatingFilterChange={setRatingFilter}
       />
 
       {enableAnimations ? (
