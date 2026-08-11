@@ -2,15 +2,18 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  Link,
   Outlet,
 } from "@tanstack/react-router";
 import { CornerControls } from "../components/CornerControls";
-import { Navbar } from "../components/Navbar";
+import { Header } from "../components/Header";
 import AdminLogin from "../pages/AdminLogin";
 import AdminPanel from "../pages/AdminPanel";
 import AdminPanelMusic from "../pages/AdminPanelMusic";
 import Film from "../pages/Film";
 import Music from "../pages/Music";
+
+const isDev = import.meta.env.DEV;
 
 // Root route with layout
 const rootRoute = createRootRoute({
@@ -22,9 +25,21 @@ const layoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "layout",
   component: () => (
-    <div className="min-h-full grid grid-rows-[auto_1fr] bg-secondary">
+    <div className="min-h-full grid grid-rows-[auto_1fr] bg-secondary relative">
+      {isDev && (
+        <div className="flex justify-center pt-4 absolute top-4 right-4">
+          <Link
+            to="/admin-panel"
+            className="text-xs tracking-wide text-main/40 transition-colors hover:text-main"
+          >
+            Admin
+          </Link>
+        </div>
+      )}
       <CornerControls />
-      <Navbar />
+
+      <Header />
+
       <main className="bg-secondary">
         <div className=" bg-secondary p-4">
           <Outlet />
