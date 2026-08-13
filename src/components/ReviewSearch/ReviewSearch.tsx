@@ -20,7 +20,7 @@ export const ReviewSearch = ({ onDebouncedChange }: ReviewSearchProps) => {
   }, [term, onDebouncedChange]);
 
   return (
-    <div className="relative w-[200px]">
+    <div className="relative w-full max-w-[200px] min-w-[120px]">
       <label htmlFor="review-search">
         <VisuallyHidden>Search</VisuallyHidden>
       </label>

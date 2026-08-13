@@ -63,12 +63,20 @@ const AdminPanel = () => {
           <h1 className="text-4xl font-bold text-main mb-2">Admin Panel</h1>
           <p className="text-main/70">Welcome back, {user.email}</p>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="bg-main/10 hover:bg-secondary/20 text-main border border-main font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-        >
-          Sign Out
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/"
+            className="bg-main/10 hover:bg-secondary/20 text-main border border-main font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            View site
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="bg-main/10 hover:bg-secondary/20 text-main border border-main font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
 
       {/* Dashboard Stats */}

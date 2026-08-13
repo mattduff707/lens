@@ -15,7 +15,7 @@ export const Navbar = () => {
   const enableAnimations = useUiStore((s) => s.enableAnimations);
 
   return (
-    <nav className="px-6 w-[300px] mx-auto sticky top-2 z-20">
+    <nav className="px-0 min-[800px]:px-6 w-full max-w-[208px] min-[800px]:mx-auto sticky top-2 z-20">
       <motion.ul
         className="flex items-center justify-center"
         variants={fadeIn}
@@ -23,7 +23,7 @@ export const Navbar = () => {
         animate="visible"
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
       >
-        <li className="border-r-1 border-main/20 w-[120px] flex justify-end pr-4">
+        <li className="border-r-1 border-main/20 flex justify-end pr-4">
           <Link
             to="/"
             activeOptions={{ exact: true }}
@@ -40,7 +40,7 @@ export const Navbar = () => {
             )}
           </Link>
         </li>
-        <li className="w-[120px] flex justify-start pl-4">
+        <li className="flex justify-start pl-4">
           <Link
             to="/film"
             className={linkClassName}

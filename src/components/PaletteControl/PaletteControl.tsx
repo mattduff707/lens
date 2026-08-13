@@ -1,4 +1,4 @@
-import * as HoverCard from "@radix-ui/react-hover-card";
+import * as Popover from "@radix-ui/react-popover";
 import { PaintingIcon } from "../icons";
 
 const COLORS = [
@@ -25,8 +25,8 @@ const COLORS = [
 ] as const;
 
 export const PaletteControl = () => (
-  <HoverCard.Root openDelay={200} closeDelay={100}>
-    <HoverCard.Trigger asChild>
+  <Popover.Root>
+    <Popover.Trigger asChild>
       <button
         type="button"
         aria-label="Color palette"
@@ -34,9 +34,9 @@ export const PaletteControl = () => (
       >
         <PaintingIcon className="h-5 w-5" />
       </button>
-    </HoverCard.Trigger>
-    <HoverCard.Portal>
-      <HoverCard.Content
+    </Popover.Trigger>
+    <Popover.Portal>
+      <Popover.Content
         side="right"
         align="start"
         sideOffset={12}
@@ -64,7 +64,7 @@ export const PaletteControl = () => (
             </li>
           ))}
         </ul>
-      </HoverCard.Content>
-    </HoverCard.Portal>
-  </HoverCard.Root>
+      </Popover.Content>
+    </Popover.Portal>
+  </Popover.Root>
 );

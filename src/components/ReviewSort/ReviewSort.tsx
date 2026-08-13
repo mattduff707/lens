@@ -5,6 +5,8 @@ import { SortIcon } from "../icons";
 export type { ReviewSortOption };
 
 const SORT_OPTIONS: { value: ReviewSortOption; label: string }[] = [
+  { value: "review-desc", label: "Newest review" },
+  { value: "review-asc", label: "Oldest review" },
   { value: "release-desc", label: "Newest release" },
   { value: "release-asc", label: "Oldest release" },
   { value: "rating-desc", label: "Highest rated" },
@@ -16,13 +18,16 @@ const SORT_OPTIONS: { value: ReviewSortOption; label: string }[] = [
 type ReviewSortProps = {
   value: ReviewSortOption;
   onChange: (sort: ReviewSortOption) => void;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export const ReviewSort = ({ value, onChange }: ReviewSortProps) => {
+export const ReviewSort = ({ value, onChange, onOpenChange }: ReviewSortProps) => {
   return (
     <Select.Root
       value={value}
       onValueChange={(next) => onChange(next as ReviewSortOption)}
+      onOpenChange={onOpenChange}
+      modal={false}
     >
       <Select.Trigger
         aria-label="Sort albums"
@@ -36,6 +41,8 @@ export const ReviewSort = ({ value, onChange }: ReviewSortProps) => {
           position="popper"
           sideOffset={6}
           align="end"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
           className="z-50 min-w-[10rem] overflow-hidden rounded-sm border border-main/15 bg-secondary shadow-subtle data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
         >
           <Select.Viewport className="p-1">

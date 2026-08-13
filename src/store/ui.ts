@@ -4,6 +4,8 @@ import { persist } from "zustand/middleware";
 export type Theme = "light" | "dark";
 
 export type ReviewSortOption =
+  | "review-desc"
+  | "review-asc"
   | "release-desc"
   | "release-asc"
   | "rating-desc"
@@ -14,6 +16,8 @@ export type ReviewSortOption =
 export type RatingFilterValue = 1 | 2 | 3 | 4 | 5 | null;
 
 const REVIEW_SORT_OPTIONS: readonly ReviewSortOption[] = [
+  "review-desc",
+  "review-asc",
   "release-desc",
   "release-asc",
   "rating-desc",
@@ -22,7 +26,7 @@ const REVIEW_SORT_OPTIONS: readonly ReviewSortOption[] = [
   "title-desc",
 ] as const;
 
-const DEFAULT_REVIEW_SORT: ReviewSortOption = "release-desc";
+const DEFAULT_REVIEW_SORT: ReviewSortOption = "review-desc";
 
 const isReviewSortOption = (value: unknown): value is ReviewSortOption =>
   typeof value === "string" &&

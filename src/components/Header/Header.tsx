@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useUiStore } from "../../store/ui";
 import { LensLogo } from "../LensLogo";
@@ -18,7 +19,9 @@ export const Header = () => {
         <VisuallyHidden>The Lens</VisuallyHidden>
       </h1>
       <div className="flex justify-center w-full pt-12 pb-8">
-        <LensLogo className="w-[260px] sm:w-[380px] md:w-[500px]" />
+        <Link to="/" aria-label="The Lens home">
+          <LensLogo className="w-[260px] sm:w-[380px] md:w-[500px]" />
+        </Link>
       </div>
       <div className="flex justify-center">
         <motion.p

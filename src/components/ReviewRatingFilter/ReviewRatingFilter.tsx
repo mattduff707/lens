@@ -21,6 +21,7 @@ const RATING_OPTIONS: RatingOption[] = [
 type ReviewRatingFilterProps = {
   value: RatingFilterValue;
   onChange: (value: RatingFilterValue) => void;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const Stars = ({
@@ -38,8 +39,12 @@ const Stars = ({
         {Array.from({ length: count }, (_, i) => (
           <span
             key={i}
-            className={`text-special ${enableAnimations ? "animate-star-wave" : ""}`}
-            style={enableAnimations ? { animationDelay: `${i * 0.12}s` } : undefined}
+            className={`text-special ${
+              enableAnimations ? "animate-star-wave" : ""
+            }`}
+            style={
+              enableAnimations ? { animationDelay: `${i * 0.12}s` } : undefined
+            }
           >
             ★
           </span>
@@ -49,15 +54,14 @@ const Stars = ({
   }
 
   return (
-    <span className="text-highlight tracking-[0.1em]">
-      {"★".repeat(count)}
-    </span>
+    <span className="text-highlight tracking-[0.1em]">{"★".repeat(count)}</span>
   );
 };
 
 export const ReviewRatingFilter = ({
   value,
   onChange,
+  onOpenChange,
 }: ReviewRatingFilterProps) => {
   const enableAnimations = useUiStore((s) => s.enableAnimations);
   const displayValue = value === null ? "all" : String(value);
@@ -69,7 +73,11 @@ export const ReviewRatingFilter = ({
   };
 
   return (
-    <Select.Root value={displayValue} onValueChange={handleChange}>
+    <Select.Root
+      value={displayValue}
+      onValueChange={handleChange}
+      onOpenChange={onOpenChange}
+    >
       <Select.Trigger
         aria-label="Filter by rating"
         className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm text-main/55 transition-colors hover:text-main focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-main/40 data-[state=open]:text-main"
@@ -94,6 +102,7 @@ export const ReviewRatingFilter = ({
           position="popper"
           sideOffset={6}
           align="center"
+          onCloseAutoFocus={(e) => e.preventDefault()}
           className="z-50 min-w-[6rem] overflow-hidden rounded-sm border border-main/15 bg-secondary shadow-subtle data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
         >
           <Select.Viewport className="p-1">

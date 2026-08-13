@@ -28,6 +28,10 @@ const compareReviews = (
   sort: ReviewSortOption
 ): number => {
   switch (sort) {
+    case "review-desc":
+      return b.review_date.localeCompare(a.review_date);
+    case "review-asc":
+      return a.review_date.localeCompare(b.review_date);
     case "release-desc":
       return b.release_date.localeCompare(a.release_date);
     case "release-asc":

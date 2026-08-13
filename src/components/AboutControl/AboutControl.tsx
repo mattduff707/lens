@@ -1,10 +1,10 @@
-import * as HoverCard from "@radix-ui/react-hover-card";
+import * as Popover from "@radix-ui/react-popover";
 import me from "../../assets/me.webp";
 import { PersonIcon } from "../icons";
 
 export const AboutControl = () => (
-  <HoverCard.Root openDelay={200} closeDelay={100}>
-    <HoverCard.Trigger asChild>
+  <Popover.Root>
+    <Popover.Trigger asChild>
       <button
         type="button"
         aria-label="About Matthew Duffy"
@@ -12,9 +12,9 @@ export const AboutControl = () => (
       >
         <PersonIcon className="h-5 w-5" />
       </button>
-    </HoverCard.Trigger>
-    <HoverCard.Portal>
-      <HoverCard.Content
+    </Popover.Trigger>
+    <Popover.Portal>
+      <Popover.Content
         side="right"
         align="start"
         sideOffset={12}
@@ -35,7 +35,7 @@ export const AboutControl = () => (
             those more talented than I.
           </p>
         </div>
-      </HoverCard.Content>
-    </HoverCard.Portal>
-  </HoverCard.Root>
+      </Popover.Content>
+    </Popover.Portal>
+  </Popover.Root>
 );

@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Label from "@radix-ui/react-label";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import {
   type AlbumResult,
@@ -11,6 +11,7 @@ import {
   createReviewMutation,
   deleteReviewMutation,
   reviewKeys,
+  reviewListQuery,
   updateReviewMutation,
 } from "../../lib/queries";
 import {
@@ -34,6 +35,7 @@ export const ReviewModal = ({
   review,
 }: ReviewModalProps) => {
   const queryClient = useQueryClient();
+  const { data: existingReviews = [] } = useQuery(reviewListQuery);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -321,6 +323,16 @@ export const ReviewModal = ({
     }));
   };
 
+  const matchingReviews = (() => {
+    const albumTitle = formData.album.trim().toLowerCase();
+    if (!albumTitle) return [];
+
+    return existingReviews.filter((existing) => {
+      if (mode === "edit" && review && existing.id === review.id) return false;
+      return existing.album.trim().toLowerCase() === albumTitle;
+    });
+  })();
+
   const getTitle = () => {
     switch (mode) {
       case "create":
@@ -391,6 +403,20 @@ export const ReviewModal = ({
                   className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
                   placeholder="Enter album name"
                 />
+                {matchingReviews.length > 0 && (
+                  <p
+                    role="status"
+                    className="mt-2 text-sm text-amber-500"
+                  >
+                    {matchingReviews.length === 1
+                      ? `A review for this album already exists${
+                          matchingReviews[0].artist.length > 0
+                            ? ` (${matchingReviews[0].artist.join(", ")})`
+                            : ""
+                        }.`
+                      : `${matchingReviews.length} reviews already exist for this album title.`}
+                  </p>
+                )}
               </div>
 
               {/* Artists */}
