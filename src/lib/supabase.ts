@@ -71,6 +71,36 @@ export const reviewService = {
     return data as Review[];
   },
 
+  // Get a first slice of published reviews, ordered to match what the list
+  // renders so the slice is a prefix of the full set rather than a subset that
+  // reshuffles once everything arrives.
+  async getPublishedPreview({
+    limit,
+    column,
+    ascending,
+    rating,
+  }: {
+    limit: number;
+    column: string;
+    ascending: boolean;
+    rating: Review["rating"] | null;
+  }) {
+    let query = supabase.from("review").select("*").eq("status", "published");
+
+    if (rating !== null) {
+      query = query.eq("rating", rating);
+    }
+
+    const { data, error } = await query
+      .order(column, { ascending })
+      // Mirrors the base order of getPublished() so ties land the same way.
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data as Review[];
+  },
+
   // Get a single review
   async getOne(id: number) {
     const { data, error } = await supabase

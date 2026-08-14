@@ -1,5 +1,25 @@
 import { queryOptions } from "@tanstack/react-query";
+import type { RatingFilterValue, ReviewSortOption } from "../store/ui";
 import { reviewService } from "./supabase";
+
+/** How many reviews the first paint renders before the full set arrives. */
+export const REVIEW_PREVIEW_LIMIT = 30;
+
+// The list sorts client-side, so the preview has to order by the same field to
+// come back as a prefix of the final list instead of an unrelated slice.
+const SORT_COLUMNS: Record<
+  ReviewSortOption,
+  { column: string; ascending: boolean }
+> = {
+  "review-desc": { column: "review_date", ascending: false },
+  "review-asc": { column: "review_date", ascending: true },
+  "release-desc": { column: "release_date", ascending: false },
+  "release-asc": { column: "release_date", ascending: true },
+  "rating-desc": { column: "rating", ascending: false },
+  "rating-asc": { column: "rating", ascending: true },
+  "title-asc": { column: "album", ascending: true },
+  "title-desc": { column: "album", ascending: false },
+};
 
 // Review query keys
 export const reviewKeys = {
@@ -7,6 +27,8 @@ export const reviewKeys = {
   list: () => [...reviewKeys.all, "list"] as const,
   // Nested under list() so invalidating the list also refreshes this.
   publishedList: () => [...reviewKeys.all, "list", "published"] as const,
+  publishedPreview: (sort: ReviewSortOption, rating: RatingFilterValue) =>
+    [...reviewKeys.all, "list", "published", "preview", sort, rating] as const,
   item: (id: number) => [...reviewKeys.all, "item", id] as const,
   byAlbum: (album: string) => [...reviewKeys.all, "album", album] as const,
   byArtist: (artist: string) => [...reviewKeys.all, "artist", artist] as const,
@@ -24,6 +46,20 @@ export const publishedReviewListQuery = queryOptions({
   queryKey: reviewKeys.publishedList(),
   queryFn: () => reviewService.getPublished(),
 });
+
+export const publishedReviewPreviewQuery = (
+  sort: ReviewSortOption,
+  rating: RatingFilterValue
+) =>
+  queryOptions({
+    queryKey: reviewKeys.publishedPreview(sort, rating),
+    queryFn: () =>
+      reviewService.getPublishedPreview({
+        limit: REVIEW_PREVIEW_LIMIT,
+        rating,
+        ...SORT_COLUMNS[sort],
+      }),
+  });
 
 export const reviewItemQuery = (id: number) =>
   queryOptions({

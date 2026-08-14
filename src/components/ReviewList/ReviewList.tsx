@@ -1,7 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { publishedReviewListQuery } from "../../lib/queries";
+import {
+  publishedReviewListQuery,
+  publishedReviewPreviewQuery,
+  reviewKeys,
+} from "../../lib/queries";
 import type { Review } from "../../lib/supabase";
 import {
   type RatingFilterValue,
@@ -74,13 +78,34 @@ export const ReviewList = () => {
 
   const [debouncedTerm, setDebouncedTerm] = useState("");
 
-  const {
-    data: reviews = [],
-    isLoading,
-    error,
-  } = useQuery(publishedReviewListQuery);
+  const queryClient = useQueryClient();
+  // Already have everything from an earlier visit, so the preview is dead weight.
+  const hasFullReviews =
+    queryClient.getQueryData(reviewKeys.publishedList()) !== undefined;
 
-  if (isLoading) {
+  const previewQuery = useQuery({
+    ...publishedReviewPreviewQuery(sort, ratingFilter),
+    enabled: !hasFullReviews,
+  });
+
+  const {
+    data: fullReviews,
+    isPending,
+    error,
+  } = useQuery({
+    ...publishedReviewListQuery,
+    // Held back so the small response lands first; a failed preview must not
+    // strand the real data, so an error unblocks it too.
+    enabled: hasFullReviews || previewQuery.isSuccess || previewQuery.isError,
+    placeholderData: previewQuery.data,
+  });
+
+  // The full set always wins. Placeholder data covers the handoff while the
+  // full fetch is pending, and this fallback keeps the preview on screen if
+  // that fetch fails outright.
+  const reviews = fullReviews ?? previewQuery.data ?? [];
+
+  if (isPending && reviews.length === 0) {
     return (
       <div className="mx-auto max-w-list py-16">
         <Loader label="Loading reviews" />
@@ -88,7 +113,9 @@ export const ReviewList = () => {
     );
   }
 
-  if (error) {
+  // With a preview on screen there is still something worth reading, so only
+  // the total failure case replaces the list outright.
+  if (error && reviews.length === 0) {
     return (
       <div className="text-center max-w-list mx-auto">
         <div className="text-red-400">

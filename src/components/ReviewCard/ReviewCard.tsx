@@ -31,6 +31,10 @@ export const ReviewCard = ({
             <img
               src={review.album_cover}
               alt={`${review.album} cover`}
+              width={80}
+              height={80}
+              loading="lazy"
+              decoding="async"
               className="h-20 w-20 object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
