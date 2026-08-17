@@ -21,13 +21,16 @@ type ReviewSortProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-export const ReviewSort = ({ value, onChange, onOpenChange }: ReviewSortProps) => {
+export const ReviewSort = ({
+  value,
+  onChange,
+  onOpenChange,
+}: ReviewSortProps) => {
   return (
     <Select.Root
       value={value}
       onValueChange={(next) => onChange(next as ReviewSortOption)}
       onOpenChange={onOpenChange}
-      modal={false}
     >
       <Select.Trigger
         aria-label="Sort albums"
@@ -41,7 +44,6 @@ export const ReviewSort = ({ value, onChange, onOpenChange }: ReviewSortProps) =
           position="popper"
           sideOffset={6}
           align="end"
-          onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           className="z-50 min-w-[10rem] overflow-hidden rounded-sm border border-main/15 bg-secondary shadow-subtle data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
         >
