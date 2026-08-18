@@ -54,6 +54,17 @@ export const ReviewModal = ({
   const toDateInputValue = (dateString: string) =>
     dateString ? dateString.slice(0, 10) : "";
 
+  const isValidDateInput = (value: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [y, m, d] = value.split("-").map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    return (
+      date.getUTCFullYear() === y &&
+      date.getUTCMonth() === m - 1 &&
+      date.getUTCDate() === d
+    );
+  };
+
   // File upload state
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -503,6 +514,44 @@ export const ReviewModal = ({
                   required
                   className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
                 />
+              </div>
+
+              {/* Review Date */}
+              <div>
+                <Label.Root
+                  htmlFor="review_date"
+                  className="block text-main font-medium mb-2"
+                >
+                  Review Date
+                </Label.Root>
+                <div className="flex gap-2">
+                  <input
+                    id="review_date"
+                    type="date"
+                    value={formData.review_date}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        review_date: e.target.value,
+                      }))
+                    }
+                    required
+                    className="flex-1 px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    disabled={!isValidDateInput(formData.release_date)}
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        review_date: prev.release_date,
+                      }))
+                    }
+                    className="shrink-0 bg-secondary/10 hover:bg-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed text-main border border-main/30 px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                  >
+                    Set to release date
+                  </button>
+                </div>
               </div>
 
               {/* Album Cover Upload */}
