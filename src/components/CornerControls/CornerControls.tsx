@@ -37,9 +37,11 @@ export const CornerControls = () => {
 
       {/* Mobile: hamburger menu - anchored bottom-left, expands upward */}
       <motion.div
-        className="fixed bottom-4 left-4 z-50 min-[1100px]:hidden overflow-hidden rounded-sm border border-main/30 bg-secondary w-10 min-[600px]:w-12 flex flex-col justify-end"
+        className="fixed bottom-4 left-4 z-50 min-[1100px]:hidden overflow-hidden rounded-sm border border-main/30 bg-secondary w-[42px] min-[600px]:w-[50px] flex flex-col justify-end"
         initial={false}
-        animate={{ height: isOpen ? (isLarger ? 248 : 184) : (isLarger ? 48 : 40) }}
+        animate={{
+          height: isOpen ? (isLarger ? 258 : 194) : isLarger ? 50 : 42,
+        }}
         transition={
           enableAnimations
             ? { duration: 0.25, ease: "easeInOut" }
@@ -57,7 +59,7 @@ export const CornerControls = () => {
                 transition={{ duration: 0.15, ease: "easeOut" }}
                 className="flex flex-col gap-3 min-[600px]:gap-4 items-center"
               >
-                <div className="flex flex-col gap-3 min-[600px]:gap-4 [&_button]:h-6 [&_button]:w-6 [&_svg]:h-5 [&_svg]:w-5 min-[600px]:[&_button]:h-8 min-[600px]:[&_button]:w-8 min-[600px]:[&_svg]:h-7 min-[600px]:[&_svg]:w-7">
+                <div className="flex flex-col gap-3 min-[600px]:gap-4 [&_button]:h-[26px] [&_button]:w-[26px] [&_svg]:h-[22px] [&_svg]:w-[22px] min-[600px]:[&_button]:h-[34px] min-[600px]:[&_button]:w-[34px] min-[600px]:[&_svg]:h-[30px] min-[600px]:[&_svg]:w-[30px]">
                   <AnimationsToggle />
                   <ThemeToggle />
                   <PaletteControl />
@@ -67,9 +69,9 @@ export const CornerControls = () => {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   aria-label="Close menu"
-                  className="flex h-6 w-6 min-[600px]:h-8 min-[600px]:w-8 items-center justify-center rounded-sm text-main/55 transition-colors hover:text-main"
+                  className="flex h-[26px] w-[26px] min-[600px]:h-[34px] min-[600px]:w-[34px] items-center justify-center rounded-sm text-main/55 transition-colors hover:text-main"
                 >
-                  <CloseIcon className="h-5 w-5 min-[600px]:h-6 min-[600px]:w-6" />
+                  <CloseIcon className="h-[22px] w-[22px] min-[600px]:h-[26px] min-[600px]:w-[26px]" />
                 </button>
               </motion.div>
             ) : (
@@ -82,9 +84,9 @@ export const CornerControls = () => {
                 animate={{ opacity: 1 }}
                 exit={enableAnimations ? { opacity: 0 } : undefined}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className="flex h-6 w-6 items-center justify-center text-main/55 transition-colors hover:text-main mx-auto"
+                className="flex h-[26px] w-[26px] items-center justify-center text-main/55 transition-colors hover:text-main mx-auto"
               >
-                <MenuIcon className="h-5 w-5 min-[600px]:h-6 min-[600px]:w-6" />
+                <MenuIcon className="h-[22px] w-[22px] min-[600px]:h-[26px] min-[600px]:w-[26px]" />
               </motion.button>
             )}
           </AnimatePresence>
