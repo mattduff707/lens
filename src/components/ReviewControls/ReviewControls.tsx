@@ -1,5 +1,7 @@
 import * as Popover from "@radix-ui/react-popover";
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { useUiStore } from "../../store/ui";
 import { FilterIcon } from "../icons";
 import { Navbar } from "../Navbar";
 import {
@@ -17,6 +19,18 @@ type ReviewControlsProps = {
   onRatingFilterChange: (value: RatingFilterValue) => void;
 };
 
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
+
+/**
+ * Each route renders its own controls, so switching between Music and Film
+ * remounts them. Tracking the intro outside React keeps the fade to the first
+ * paint of the session instead of replaying on every navigation.
+ */
+let hasPlayedIntro = false;
+
 export const ReviewControls = ({
   onDebouncedChange,
   sort,
@@ -24,9 +38,15 @@ export const ReviewControls = ({
   ratingFilter,
   onRatingFilterChange,
 }: ReviewControlsProps) => {
+  const enableAnimations = useUiStore((s) => s.enableAnimations);
+  const [playIntro] = useState(() => !hasPlayedIntro);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
   const [childSelectOpen, setChildSelectOpen] = useState(false);
+
+  useEffect(() => {
+    hasPlayedIntro = true;
+  }, []);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -46,7 +66,13 @@ export const ReviewControls = ({
   return (
     <>
       <div ref={sentinelRef} className="h-0" aria-hidden="true" />
-      <div className="sticky top-0 z-10">
+      <motion.div
+        className="sticky top-0 z-10"
+        variants={fadeIn}
+        initial={enableAnimations && playIntro ? "hidden" : false}
+        animate="visible"
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+      >
         {/* Desktop layout: 800px and up */}
         <div className="hidden min-[800px]:flex items-center justify-between gap-4 bg-secondary py-4 min-[1100px]:px-0 px-0">
           <ReviewSearch onDebouncedChange={onDebouncedChange} />
@@ -113,7 +139,7 @@ export const ReviewControls = ({
           }`}
           aria-hidden="true"
         />
-      </div>
+      </motion.div>
     </>
   );
 };

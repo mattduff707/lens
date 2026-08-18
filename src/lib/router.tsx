@@ -9,6 +9,7 @@ import { CornerControls } from "../components/CornerControls";
 import { Header } from "../components/Header";
 import AdminLogin from "../pages/AdminLogin";
 import AdminPanel from "../pages/AdminPanel";
+import AdminPanelFilm from "../pages/AdminPanelFilm";
 import AdminPanelMusic from "../pages/AdminPanelMusic";
 import Film from "../pages/Film";
 import Music from "../pages/Music";
@@ -77,6 +78,13 @@ const adminPanelMusicRoute = createRoute({
   component: AdminPanelMusic,
 });
 
+// Admin panel film route (with navbar)
+const adminPanelFilmRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/admin-panel/film",
+  component: AdminPanelFilm,
+});
+
 // Admin login route (no navbar)
 const adminLoginRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -91,6 +99,7 @@ const routeTree = rootRoute.addChildren([
     filmRoute,
     adminPanelRoute,
     adminPanelMusicRoute,
+    adminPanelFilmRoute,
   ]),
   adminLoginRoute,
 ]);

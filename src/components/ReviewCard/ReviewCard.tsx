@@ -1,20 +1,32 @@
 import {
   COVER_EAGER_COUNT,
   COVER_HIGH_PRIORITY_COUNT,
-} from "../../lib/albumCover";
-import { type Review } from "../../lib/supabase";
+} from "../../lib/coverImage";
+import type { CoverAspect, MediaItem } from "../../lib/media";
 import { RatingStars } from "../RatingStars";
 
 interface ReviewCardProps {
-  review: Review;
-  onEdit?: (review: Review) => void;
-  onDelete?: (review: Review) => void;
+  item: MediaItem;
+  aspect: CoverAspect;
+  metaLabel: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
   showActions?: boolean;
   index?: number;
 }
 
+const COVER_DIMENSIONS: Record<
+  CoverAspect,
+  { width: number; height: number; className: string }
+> = {
+  square: { width: 80, height: 80, className: "h-20 w-20" },
+  poster: { width: 80, height: 120, className: "h-30 w-20" },
+};
+
 export const ReviewCard = ({
-  review,
+  item,
+  aspect,
+  metaLabel,
   onEdit,
   onDelete,
   showActions = false,
@@ -29,22 +41,24 @@ export const ReviewCard = ({
     });
   };
 
+  const cover = COVER_DIMENSIONS[aspect];
+
   return (
     <article className="group pt-6">
       <div className="flex gap-5">
-        {review.album_cover && (
+        {item.imageUrl && (
           <div className="shrink-0">
             <img
-              src={review.album_cover}
-              alt={`${review.album} cover`}
-              width={80}
-              height={80}
+              src={item.imageUrl}
+              alt={`${item.title} cover`}
+              width={cover.width}
+              height={cover.height}
               loading={index < COVER_EAGER_COUNT ? "eager" : "lazy"}
               fetchPriority={
                 index < COVER_HIGH_PRIORITY_COUNT ? "high" : "auto"
               }
               decoding="async"
-              className="h-20 w-20 object-cover"
+              className={`${cover.className} object-cover`}
               onError={(e) => {
                 e.currentTarget.style.display = "none";
               }}
@@ -56,41 +70,41 @@ export const ReviewCard = ({
           <div className="flex items-baseline justify-between gap-4">
             <div className="min-w-0">
               <h3 className="text-lg font-bold tracking-tight text-main">
-                {review.album}
+                {item.title}
               </h3>
               <p className="mt-0.5 text-sm text-main/75">
-                {review.artist.join(", ")}
+                {item.subtitle.join(", ")}
               </p>
             </div>
 
-            <RatingStars rating={review.rating} />
+            <RatingStars rating={item.rating} />
           </div>
 
-          {review.description && (
+          {item.description && (
             <p className="mt-3 text-sm leading-relaxed text-main/70 line-clamp-3">
-              {review.description}
+              {item.description}
             </p>
           )}
 
-          {review.highlights.length > 0 && (
+          {item.metaItems.length > 0 && (
             <p className="mt-3 text-sm text-main/55">
-              <span className="text-main/35">Highlights </span>
-              {review.highlights.join(" · ")}
+              <span className="text-main/35">{metaLabel} </span>
+              {item.metaItems.join(" · ")}
             </p>
           )}
 
           <div className="mt-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              {review.release_date && (
+              {item.releaseDate && (
                 <time
-                  dateTime={review.release_date}
+                  dateTime={item.releaseDate}
                   className="text-xs tracking-wide text-main/60"
                 >
-                  Released {formatDate(review.release_date)}
+                  Released {formatDate(item.releaseDate)}
                 </time>
               )}
               {/* Admin-only, so the marker never reaches the public site */}
-              {showActions && review.status === "draft" && (
+              {showActions && item.status === "draft" && (
                 <span className="rounded border border-main/20 px-1.5 py-0.5 text-xs tracking-wide text-main/50">
                   Draft
                 </span>
@@ -101,7 +115,7 @@ export const ReviewCard = ({
               <div className="flex gap-3">
                 {onEdit && (
                   <button
-                    onClick={() => onEdit(review)}
+                    onClick={onEdit}
                     className="text-xs tracking-wide text-main/50 transition-colors hover:text-main"
                   >
                     Edit
@@ -109,7 +123,7 @@ export const ReviewCard = ({
                 )}
                 {onDelete && (
                   <button
-                    onClick={() => onDelete(review)}
+                    onClick={onDelete}
                     className="text-xs tracking-wide text-main/50 transition-colors hover:text-red-500"
                   >
                     Delete

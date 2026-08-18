@@ -9,7 +9,7 @@ import { supabase } from "./supabase";
  * 2. Create a new bucket called "album-covers"
  * 3. Set it to public (or adjust the policy below)
  *
- * Uploads set cacheControl to "31536000" (1 year) in albumCover.ts.
+ * Uploads set cacheControl to "31536000" (1 year) in coverImage.ts.
  * Filenames are unique, so long-lived browser cache is safe.
  */
 

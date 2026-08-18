@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { reviewListQuery } from "../lib/queries";
+import { filmListQuery, reviewListQuery } from "../lib/queries";
 import { authService } from "../lib/supabase";
 
 const AdminPanel = () => {
@@ -12,6 +12,16 @@ const AdminPanel = () => {
   // Fetch reviews for stats
   const { data: reviews = [], isLoading: reviewsLoading } =
     useQuery(reviewListQuery);
+  const { data: films = [], isLoading: filmsLoading } = useQuery(filmListQuery);
+
+  const statsLoading = reviewsLoading || filmsLoading;
+  const totalCount = reviews.length + films.length;
+  const ratings = [...reviews, ...films].map((entry) => entry.rating);
+  // Both lists arrive ordered by created_at desc, so only the two heads can win.
+  const latest = [
+    ...reviews.slice(0, 1).map((r) => ({ title: r.album, at: r.created_at })),
+    ...films.slice(0, 1).map((f) => ({ title: f.title, at: f.created_at })),
+  ].sort((a, b) => b.at.localeCompare(a.at))[0];
 
   useEffect(() => {
     // Check if user is authenticated
@@ -86,9 +96,11 @@ const AdminPanel = () => {
             Total Reviews
           </h3>
           <div className="text-3xl font-bold text-main mb-2">
-            {reviewsLoading ? "..." : reviews.length}
+            {statsLoading ? "..." : totalCount}
           </div>
-          <p className="text-main/70 text-sm">Album reviews published</p>
+          <p className="text-main/70 text-sm">
+            {reviews.length} albums · {films.length} films
+          </p>
         </div>
 
         <div className="bg-main/5 border border-main/20 rounded-lg p-6">
@@ -96,11 +108,11 @@ const AdminPanel = () => {
             Average Rating
           </h3>
           <div className="text-3xl font-bold text-main mb-2">
-            {reviewsLoading || reviews.length === 0
+            {statsLoading || ratings.length === 0
               ? "N/A"
               : (
-                  reviews.reduce((sum, review) => sum + review.rating, 0) /
-                  reviews.length
+                  ratings.reduce((sum, rating) => sum + rating, 0) /
+                  ratings.length
                 ).toFixed(1)}
           </div>
           <p className="text-main/70 text-sm">Across all reviews</p>
@@ -111,11 +123,7 @@ const AdminPanel = () => {
             Latest Review
           </h3>
           <div className="text-lg font-semibold text-main mb-2">
-            {reviewsLoading
-              ? "Loading..."
-              : reviews.length > 0
-              ? reviews[0].album
-              : "None"}
+            {statsLoading ? "Loading..." : latest ? latest.title : "None"}
           </div>
           <p className="text-main/70 text-sm">Most recent publication</p>
         </div>
@@ -139,18 +147,16 @@ const AdminPanel = () => {
         </div>
 
         <div className="bg-main/5 border border-main/20 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-main mb-4">
-            Quick Actions
-          </h2>
-          <p className="text-main/70 mb-4">Common administrative tasks</p>
-          <div className="space-y-2">
-            <Link
-              to="/admin-panel/music"
-              className="block bg-main/10 hover:bg-main/20 text-main border border-main/30 font-medium px-4 py-2 rounded-lg transition-colors duration-200 text-center"
-            >
-              Add New Review
-            </Link>
-          </div>
+          <h2 className="text-xl font-semibold text-main mb-4">Film Reviews</h2>
+          <p className="text-main/70 mb-4">
+            Create, edit, and manage your film reviews
+          </p>
+          <Link
+            to="/admin-panel/film"
+            className="inline-block bg-main hover:bg-main/80 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            Manage Reviews
+          </Link>
         </div>
       </div>
     </div>

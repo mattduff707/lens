@@ -39,6 +39,11 @@ export const AboutControl = () => (
             and the great outdoors. Please enjoy my thoughts on the works of
             those more talented than I.
           </p>
+          {/* Required by the TMDB API terms of use. */}
+          <p className="mt-1.5 text-xs leading-relaxed text-main/45">
+            This product uses the TMDB API but is not endorsed or certified by
+            TMDB.
+          </p>
         </div>
       </Popover.Content>
     </Popover.Portal>

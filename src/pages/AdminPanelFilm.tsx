@@ -1,29 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { FilmModal } from "../components/FilmModal";
 import { ReviewCard } from "../components/ReviewCard";
-import { ReviewModal } from "../components/ReviewModal";
 import { ReviewSearch } from "../components/ReviewSearch";
-import { musicConfig } from "../lib/media";
-import { reviewListQuery } from "../lib/queries";
-import { authService, type Review } from "../lib/supabase";
+import { filmConfig } from "../lib/media";
+import { filmListQuery } from "../lib/queries";
+import { authService, type Film } from "../lib/supabase";
 
-const matchesAlbumSearch = (review: Review, term: string): boolean => {
+const matchesFilmSearch = (film: Film, term: string): boolean => {
   if (!term) return true;
   const q = term.toLowerCase();
   return (
-    review.album.toLowerCase().includes(q) ||
-    review.artist.some((artist) => artist.toLowerCase().includes(q))
+    film.title.toLowerCase().includes(q) ||
+    (film.director ?? []).some((director) => director.toLowerCase().includes(q))
   );
 };
 
-const AdminPanelMusic = () => {
+const AdminPanelFilm = () => {
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     mode: "create" | "edit" | "delete";
-    review?: Review;
+    film?: Film;
   }>({
     isOpen: false,
     mode: "create",
@@ -31,9 +31,8 @@ const AdminPanelMusic = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // Fetch reviews
-  const { data: reviews = [], isLoading: reviewsLoading } =
-    useQuery(reviewListQuery);
+  const { data: films = [], isLoading: filmsLoading } =
+    useQuery(filmListQuery);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -57,15 +56,15 @@ const AdminPanelMusic = () => {
     checkAuth();
   }, [navigate]);
 
-  const publishedCount = reviews.filter(
-    (review) => review.status === "published"
+  const publishedCount = films.filter(
+    (film) => film.status === "published"
   ).length;
-  const filteredReviews = reviews.filter((review) =>
-    matchesAlbumSearch(review, searchTerm)
+  const filteredFilms = films.filter((film) =>
+    matchesFilmSearch(film, searchTerm)
   );
 
-  const openModal = (mode: "create" | "edit" | "delete", review?: Review) => {
-    setModalState({ isOpen: true, mode, review });
+  const openModal = (mode: "create" | "edit" | "delete", film?: Film) => {
+    setModalState({ isOpen: true, mode, film });
   };
 
   const closeModal = () => {
@@ -89,12 +88,12 @@ const AdminPanelMusic = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-main mb-2">Music Reviews</h1>
-          <p className="text-main/70">Manage your album reviews and ratings</p>
+          <h1 className="text-4xl font-bold text-main mb-2">Film Reviews</h1>
+          <p className="text-main/70">Manage your film reviews and ratings</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
-            to="/"
+            to="/film"
             className="bg-main/10 hover:bg-secondary/20 text-main border border-main font-medium px-4 py-2 rounded-lg transition-colors duration-200"
           >
             View site
@@ -115,12 +114,11 @@ const AdminPanelMusic = () => {
             Total Reviews
           </h3>
           <div className="text-3xl font-bold text-main">
-            {reviewsLoading ? "..." : reviews.length}
+            {filmsLoading ? "..." : films.length}
           </div>
-          {!reviewsLoading && (
+          {!filmsLoading && (
             <p className="text-main/70 text-sm mt-1">
-              {publishedCount} published · {reviews.length - publishedCount}{" "}
-              draft
+              {publishedCount} published · {films.length - publishedCount} draft
             </p>
           )}
         </div>
@@ -130,11 +128,11 @@ const AdminPanelMusic = () => {
             Average Rating
           </h3>
           <div className="text-3xl font-bold text-main">
-            {reviewsLoading || reviews.length === 0
+            {filmsLoading || films.length === 0
               ? "N/A"
               : (
-                  reviews.reduce((sum, review) => sum + review.rating, 0) /
-                  reviews.length
+                  films.reduce((sum, film) => sum + film.rating, 0) /
+                  films.length
                 ).toFixed(1)}
           </div>
         </div>
@@ -144,29 +142,29 @@ const AdminPanelMusic = () => {
             Latest Review
           </h3>
           <div className="text-sm text-main/70">
-            {reviewsLoading
+            {filmsLoading
               ? "Loading..."
-              : reviews.length > 0
-              ? reviews[0].album
+              : films.length > 0
+              ? films[0].title
               : "No reviews yet"}
           </div>
         </div>
       </div>
 
-      {/* Reviews List */}
+      {/* Films List */}
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-semibold text-main">All Reviews</h2>
-          {reviews.length > 0 && (
+          {films.length > 0 && (
             <ReviewSearch onDebouncedChange={setSearchTerm} />
           )}
         </div>
 
-        {reviewsLoading ? (
+        {filmsLoading ? (
           <div className="bg-main/5 border border-main/20 rounded-lg p-8 text-center">
             <div className="text-main">Loading reviews...</div>
           </div>
-        ) : reviews.length === 0 ? (
+        ) : films.length === 0 ? (
           <div className="bg-main/5 border border-main/20 rounded-lg p-8 text-center">
             <div className="text-main/70 mb-4">No reviews created yet</div>
             <button
@@ -176,35 +174,35 @@ const AdminPanelMusic = () => {
               Create your first review
             </button>
           </div>
-        ) : filteredReviews.length === 0 ? (
+        ) : filteredFilms.length === 0 ? (
           <div className="bg-main/5 border border-main/20 rounded-lg p-8 text-center">
             <div className="text-main/70">No reviews match "{searchTerm}"</div>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-            {filteredReviews.map((review) => (
+            {filteredFilms.map((film) => (
               <ReviewCard
-                key={review.id}
-                item={musicConfig.toMediaItem(review)}
-                aspect={musicConfig.aspect}
-                metaLabel={musicConfig.metaLabel}
+                key={film.id}
+                item={filmConfig.toMediaItem(film)}
+                aspect={filmConfig.aspect}
+                metaLabel={filmConfig.metaLabel}
                 showActions={true}
-                onEdit={() => openModal("edit", review)}
-                onDelete={() => openModal("delete", review)}
+                onEdit={() => openModal("edit", film)}
+                onDelete={() => openModal("delete", film)}
               />
             ))}
           </div>
         )}
       </div>
 
-      <ReviewModal
+      <FilmModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
         mode={modalState.mode}
-        review={modalState.review}
+        film={modalState.film}
       />
     </div>
   );
 };
 
-export default AdminPanelMusic;
+export default AdminPanelFilm;

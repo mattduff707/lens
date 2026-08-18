@@ -2,51 +2,49 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as Label from "@radix-ui/react-label";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
+import { FILM_POSTER, uploadCover } from "../../lib/coverImage";
 import {
-  type AlbumResult,
-  getArtworkUrl,
-  getTracklist,
-} from "../../lib/itunes";
-import { ALBUM_COVER, uploadCover } from "../../lib/coverImage";
-import {
-  createReviewMutation,
-  deleteReviewMutation,
-  reviewKeys,
-  reviewListQuery,
-  updateReviewMutation,
+  createFilmMutation,
+  deleteFilmMutation,
+  filmKeys,
+  filmListQuery,
+  updateFilmMutation,
 } from "../../lib/queries";
-import { type Review, type ReviewStatus } from "../../lib/supabase";
-import { AlbumSearch } from "../AlbumSearch";
+import { type Film, type ReviewStatus } from "../../lib/supabase";
+import {
+  getMovieDetails,
+  getPosterUrl,
+  type MovieResult,
+} from "../../lib/tmdb";
+import { MovieSearch } from "../MovieSearch";
 
-interface ReviewModalProps {
+interface FilmModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: "create" | "edit" | "delete";
-  review?: Review;
+  film?: Film;
 }
 
-export const ReviewModal = ({
-  isOpen,
-  onClose,
-  mode,
-  review,
-}: ReviewModalProps) => {
-  const queryClient = useQueryClient();
-  const { data: existingReviews = [] } = useQuery(reviewListQuery);
+type ArrayField = "director" | "cast_members";
 
-  // Form state
-  const [formData, setFormData] = useState({
-    album: "",
-    artist: [""],
-    album_cover: "",
-    rating: 5 as 1 | 2 | 3 | 4 | 5,
-    tracklist: [""],
-    highlights: [""],
-    description: "",
-    review_date: new Date().toISOString().slice(0, 10),
-    release_date: "",
-    status: "draft" as ReviewStatus,
-  });
+const emptyForm = () => ({
+  title: "",
+  director: [""],
+  cast_members: [""],
+  poster: "",
+  rating: 5 as 1 | 2 | 3 | 4 | 5,
+  description: "",
+  review_date: new Date().toISOString().slice(0, 10),
+  release_date: "",
+  status: "draft" as ReviewStatus,
+  tmdb_id: null as number | null,
+});
+
+export const FilmModal = ({ isOpen, onClose, mode, film }: FilmModalProps) => {
+  const queryClient = useQueryClient();
+  const { data: existingFilms = [] } = useQuery(filmListQuery);
+
+  const [formData, setFormData] = useState(emptyForm);
 
   const toDateInputValue = (dateString: string) =>
     dateString ? dateString.slice(0, 10) : "";
@@ -68,77 +66,57 @@ export const ReviewModal = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fillingFromSearch, setFillingFromSearch] = useState(false);
 
-  // Create mutation
-  const createMutation = useMutation({
-    ...createReviewMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: reviewKeys.list() });
-      onClose();
-      resetForm();
-    },
-  });
-
-  // Update mutation
-  const updateMutation = useMutation({
-    ...updateReviewMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: reviewKeys.list() });
-      onClose();
-      resetForm();
-    },
-  });
-
-  // Delete mutation
-  const deleteMutation = useMutation({
-    ...deleteReviewMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: reviewKeys.list() });
-      onClose();
-    },
-  });
-
   const resetForm = () => {
-    setFormData({
-      album: "",
-      artist: [""],
-      album_cover: "",
-      rating: 5,
-      tracklist: [""],
-      highlights: [""],
-      description: "",
-      review_date: new Date().toISOString().slice(0, 10),
-      release_date: "",
-      status: "draft",
-    });
+    setFormData(emptyForm());
     setSelectedFile(null);
     setPreviewUrl(null);
   };
 
+  const createMutation = useMutation({
+    ...createFilmMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: filmKeys.list() });
+      onClose();
+      resetForm();
+    },
+  });
+
+  const updateMutation = useMutation({
+    ...updateFilmMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: filmKeys.list() });
+      onClose();
+      resetForm();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    ...deleteFilmMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: filmKeys.list() });
+      onClose();
+    },
+  });
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
       if (!validTypes.includes(file.type)) {
         alert("Please select a valid image file (JPEG, PNG, or WebP)");
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert("File size must be less than 5MB");
         return;
       }
 
       setSelectedFile(file);
-
-      // Create preview URL
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  // Cleanup preview URL when component unmounts or file changes
   const clearPreview = useCallback(() => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -163,46 +141,35 @@ export const ReviewModal = ({
     };
   }, [previewUrl]);
 
-  // Prefill form when review prop changes (for edit mode)
+  // Prefill form when film prop changes (for edit mode)
   useEffect(() => {
-    if (review && mode === "edit") {
+    if (film && mode === "edit") {
       setFormData({
-        album: review.album,
-        artist: review.artist.length > 0 ? review.artist : [""],
-        album_cover: review.album_cover,
-        rating: review.rating,
-        tracklist: review.tracklist.length > 0 ? review.tracklist : [""],
-        highlights: review.highlights.length > 0 ? review.highlights : [""],
-        description: review.description,
-        review_date: toDateInputValue(review.review_date),
-        release_date: toDateInputValue(review.release_date),
-        status: review.status,
+        title: film.title,
+        director: film.director?.length > 0 ? film.director : [""],
+        cast_members:
+          film.cast_members?.length > 0 ? film.cast_members : [""],
+        poster: film.poster,
+        rating: film.rating,
+        description: film.description,
+        review_date: toDateInputValue(film.review_date),
+        release_date: toDateInputValue(film.release_date),
+        status: film.status,
+        tmdb_id: film.tmdb_id,
       });
     } else if (mode === "create") {
-      // Reset form for create mode
-      setFormData({
-        album: "",
-        artist: [""],
-        album_cover: "",
-        rating: 5,
-        tracklist: [""],
-        highlights: [""],
-        description: "",
-        review_date: new Date().toISOString().slice(0, 10),
-        release_date: "",
-        status: "draft",
-      });
+      setFormData(emptyForm());
     }
-  }, [review, mode]);
+  }, [film, mode]);
 
-  // Fill the form from an iTunes search result. Rating, description and
+  // Fill the form from a TMDB search result. Rating, description and
   // review_date are left alone since they are the reviewer's own input.
-  const handleAlbumSelect = async (album: AlbumResult) => {
+  const handleMovieSelect = async (movie: MovieResult) => {
     setFormData((prev) => ({
       ...prev,
-      album: album.album,
-      artist: [album.artist],
-      release_date: album.releaseDate,
+      title: movie.title,
+      release_date: movie.releaseDate,
+      tmdb_id: movie.id,
     }));
 
     setFillingFromSearch(true);
@@ -210,26 +177,28 @@ export const ReviewModal = ({
     // Metadata lookups are best effort: a failure here still leaves the
     // reviewer with the fields that were filled above.
     try {
-      const tracks = await getTracklist(album.id);
-      if (tracks.length > 0) {
-        setFormData((prev) => ({ ...prev, tracklist: tracks }));
-      }
+      const details = await getMovieDetails(movie.id);
+      setFormData((prev) => ({
+        ...prev,
+        director: details.directors.length > 0 ? details.directors : prev.director,
+        cast_members: details.cast.length > 0 ? details.cast : prev.cast_members,
+      }));
     } catch (error) {
-      console.error("Tracklist lookup failed:", error);
+      console.error("Credits lookup failed:", error);
     }
 
     try {
-      if (album.artworkUrl) {
-        const response = await fetch(getArtworkUrl(album.artworkUrl));
+      if (movie.posterPath) {
+        const response = await fetch(getPosterUrl(movie.posterPath, "w500"));
         const blob = await response.blob();
-        const file = new File([blob], `${album.id}.jpg`, { type: blob.type });
+        const file = new File([blob], `${movie.id}.jpg`, { type: blob.type });
 
         clearPreview();
         setSelectedFile(file);
         setPreviewUrl(URL.createObjectURL(file));
       }
     } catch (error) {
-      console.error("Artwork download failed:", error);
+      console.error("Poster download failed:", error);
     } finally {
       setFillingFromSearch(false);
     }
@@ -242,33 +211,29 @@ export const ReviewModal = ({
       try {
         setUploadingFile(true);
 
-        let albumCoverUrl = formData.album_cover;
+        let posterUrl = formData.poster;
 
-        // Upload file if one is selected
         if (selectedFile) {
-          albumCoverUrl = await uploadCover(selectedFile, ALBUM_COVER);
+          posterUrl = await uploadCover(selectedFile, FILM_POSTER);
         }
 
-        // Filter out empty values
         const cleanedData = {
           ...formData,
-          album_cover: albumCoverUrl,
-          artist: formData.artist.filter((a) => a.trim() !== ""),
-          tracklist: formData.tracklist.filter((t) => t.trim() !== ""),
-          highlights: formData.highlights.filter((h) => h.trim() !== ""),
+          poster: posterUrl,
+          director: formData.director.filter((d) => d.trim() !== ""),
+          cast_members: formData.cast_members.filter((c) => c.trim() !== ""),
         };
 
         if (mode === "create") {
           createMutation.mutate(cleanedData);
-        } else if (mode === "edit" && review) {
+        } else if (mode === "edit" && film) {
           updateMutation.mutate({
-            id: review.id,
+            id: film.id,
             updates: cleanedData,
           });
         }
       } catch (error) {
         console.error("Upload failed:", error);
-        // You could show an error message here
       } finally {
         setUploadingFile(false);
       }
@@ -276,13 +241,13 @@ export const ReviewModal = ({
   };
 
   const handleDelete = () => {
-    if (review) {
-      deleteMutation.mutate(review.id);
+    if (film) {
+      deleteMutation.mutate(film.id);
     }
   };
 
   const updateArrayField = (
-    field: "artist" | "tracklist" | "highlights",
+    field: ArrayField,
     index: number,
     value: string
   ) => {
@@ -292,43 +257,40 @@ export const ReviewModal = ({
     }));
   };
 
-  const addArrayField = (field: "artist" | "tracklist" | "highlights") => {
+  const addArrayField = (field: ArrayField) => {
     setFormData((prev) => ({
       ...prev,
       [field]: [...prev[field], ""],
     }));
   };
 
-  const removeArrayField = (
-    field: "artist" | "tracklist" | "highlights",
-    index: number
-  ) => {
+  const removeArrayField = (field: ArrayField, index: number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index),
     }));
   };
 
-  const matchingReviews = (() => {
-    const albumTitle = formData.album.trim().toLowerCase();
-    if (!albumTitle) return [];
+  const matchingFilms = (() => {
+    const title = formData.title.trim().toLowerCase();
+    if (!title) return [];
 
-    return existingReviews.filter((existing) => {
-      if (mode === "edit" && review && existing.id === review.id) return false;
-      return existing.album.trim().toLowerCase() === albumTitle;
+    return existingFilms.filter((existing) => {
+      if (mode === "edit" && film && existing.id === film.id) return false;
+      return existing.title.trim().toLowerCase() === title;
     });
   })();
 
   const getTitle = () => {
     switch (mode) {
       case "create":
-        return "Create New Review";
+        return "Create New Film Review";
       case "edit":
-        return "Edit Review";
+        return "Edit Film Review";
       case "delete":
-        return "Delete Review";
+        return "Delete Film Review";
       default:
-        return "Review";
+        return "Film Review";
     }
   };
 
@@ -344,8 +306,8 @@ export const ReviewModal = ({
           {mode === "delete" ? (
             <div className="space-y-4">
               <p className="text-main/70">
-                Are you sure you want to delete the review for "{review?.album}
-                "? This action cannot be undone.
+                Are you sure you want to delete the review for "{film?.title}"?
+                This action cannot be undone.
               </p>
               <div className="flex space-x-3 justify-end">
                 <Dialog.Close asChild>
@@ -364,67 +326,64 @@ export const ReviewModal = ({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Album Search */}
-              <AlbumSearch
-                onSelect={handleAlbumSelect}
+              {/* Film Search */}
+              <MovieSearch
+                onSelect={handleMovieSelect}
                 disabled={fillingFromSearch}
               />
 
-              {/* Album Name */}
+              {/* Title */}
               <div>
                 <Label.Root
-                  htmlFor="album"
+                  htmlFor="title"
                   className="block text-main font-medium mb-2"
                 >
-                  Album Name
+                  Film Title
                 </Label.Root>
                 <input
-                  id="album"
+                  id="title"
                   type="text"
-                  value={formData.album}
+                  value={formData.title}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, album: e.target.value }))
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
                   }
                   required
                   className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
-                  placeholder="Enter album name"
+                  placeholder="Enter film title"
                 />
-                {matchingReviews.length > 0 && (
-                  <p
-                    role="status"
-                    className="mt-2 text-sm text-amber-500"
-                  >
-                    {matchingReviews.length === 1
-                      ? `A review for this album already exists${
-                          matchingReviews[0].artist.length > 0
-                            ? ` (${matchingReviews[0].artist.join(", ")})`
+                {matchingFilms.length > 0 && (
+                  <p role="status" className="mt-2 text-sm text-amber-500">
+                    {matchingFilms.length === 1
+                      ? `A review for this film already exists${
+                          matchingFilms[0].director?.length > 0
+                            ? ` (${matchingFilms[0].director.join(", ")})`
                             : ""
                         }.`
-                      : `${matchingReviews.length} reviews already exist for this album title.`}
+                      : `${matchingFilms.length} reviews already exist for this film title.`}
                   </p>
                 )}
               </div>
 
-              {/* Artists */}
+              {/* Directors */}
               <div>
                 <Label.Root className="block text-main font-medium mb-2">
-                  Artists
+                  Directors
                 </Label.Root>
-                {formData.artist.map((artist, index) => (
+                {formData.director.map((director, index) => (
                   <div key={index} className="flex space-x-2 mb-2">
                     <input
                       type="text"
-                      value={artist}
+                      value={director}
                       onChange={(e) =>
-                        updateArrayField("artist", index, e.target.value)
+                        updateArrayField("director", index, e.target.value)
                       }
                       className="flex-1 px-4 py-2 bg-secondary border border-main/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
-                      placeholder="Artist name"
+                      placeholder="Director name"
                     />
-                    {formData.artist.length > 1 && (
+                    {formData.director.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayField("artist", index)}
+                        onClick={() => removeArrayField("director", index)}
                         className="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-2 rounded-lg transition-colors duration-200"
                       >
                         ×
@@ -434,10 +393,10 @@ export const ReviewModal = ({
                 ))}
                 <button
                   type="button"
-                  onClick={() => addArrayField("artist")}
+                  onClick={() => addArrayField("director")}
                   className="bg-secondary/10 hover:bg-secondary/20 text-main border border-main/30 px-3 py-1 rounded text-sm transition-colors duration-200"
                 >
-                  + Add Artist
+                  + Add Director
                 </button>
               </div>
 
@@ -529,17 +488,17 @@ export const ReviewModal = ({
                 </div>
               </div>
 
-              {/* Album Cover Upload */}
+              {/* Poster Upload */}
               <div>
                 <Label.Root
-                  htmlFor="album_cover"
+                  htmlFor="poster"
                   className="block text-main font-medium mb-2"
                 >
-                  Album Cover Image
+                  Poster Image
                 </Label.Root>
                 <div className="space-y-3">
                   <input
-                    id="album_cover"
+                    id="poster"
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
                     onChange={handleFileChange}
@@ -561,11 +520,11 @@ export const ReviewModal = ({
                         </button>
                       </div>
                       {previewUrl && (
-                        <div className="relative">
+                        <div className="relative w-32">
                           <img
                             src={previewUrl}
-                            alt="Album cover preview"
-                            className="w-32 h-32 object-cover rounded-lg border border-main/20"
+                            alt="Poster preview"
+                            className="w-32 h-48 object-cover rounded-lg border border-main/20"
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
                             <span className="text-white text-xs">Preview</span>
@@ -580,26 +539,26 @@ export const ReviewModal = ({
                 </div>
               </div>
 
-              {/* Tracklist */}
+              {/* Cast */}
               <div>
                 <Label.Root className="block text-main font-medium mb-2">
-                  Tracklist
+                  Cast
                 </Label.Root>
-                {formData.tracklist.map((track, index) => (
+                {formData.cast_members.map((member, index) => (
                   <div key={index} className="flex space-x-2 mb-2">
                     <input
                       type="text"
-                      value={track}
+                      value={member}
                       onChange={(e) =>
-                        updateArrayField("tracklist", index, e.target.value)
+                        updateArrayField("cast_members", index, e.target.value)
                       }
                       className="flex-1 px-4 py-2 bg-secondary border border-main/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
-                      placeholder="Track name"
+                      placeholder="Actor name"
                     />
-                    {formData.tracklist.length > 1 && (
+                    {formData.cast_members.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeArrayField("tracklist", index)}
+                        onClick={() => removeArrayField("cast_members", index)}
                         className="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-2 rounded-lg transition-colors duration-200"
                       >
                         ×
@@ -609,46 +568,10 @@ export const ReviewModal = ({
                 ))}
                 <button
                   type="button"
-                  onClick={() => addArrayField("tracklist")}
+                  onClick={() => addArrayField("cast_members")}
                   className="bg-secondary/10 hover:bg-secondary/20 text-main border border-main/30 px-3 py-1 rounded text-sm transition-colors duration-200"
                 >
-                  + Add Track
-                </button>
-              </div>
-
-              {/* Highlights */}
-              <div>
-                <Label.Root className="block text-main font-medium mb-2">
-                  Highlights (must be from tracklist)
-                </Label.Root>
-                {formData.highlights.map((highlight, index) => (
-                  <div key={index} className="flex space-x-2 mb-2">
-                    <input
-                      type="text"
-                      value={highlight}
-                      onChange={(e) =>
-                        updateArrayField("highlights", index, e.target.value)
-                      }
-                      className="flex-1 px-4 py-2 bg-secondary border border-main/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
-                      placeholder="Highlight track"
-                    />
-                    {formData.highlights.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeArrayField("highlights", index)}
-                        className="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-2 rounded-lg transition-colors duration-200"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => addArrayField("highlights")}
-                  className="bg-secondary/10 hover:bg-secondary/20 text-main border border-main/30 px-3 py-1 rounded text-sm transition-colors duration-200"
-                >
-                  + Add Highlight
+                  + Add Cast Member
                 </button>
               </div>
 

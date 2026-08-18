@@ -1,12 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import {
-  publishedReviewListQuery,
-  publishedReviewPreviewQuery,
-  reviewKeys,
-} from "../../lib/queries";
-import type { Review } from "../../lib/supabase";
+import type { MediaConfig, MediaItem } from "../../lib/media";
 import {
   type RatingFilterValue,
   type ReviewSortOption,
@@ -26,50 +21,50 @@ const listTransition = {
   ease: "easeOut" as const,
 };
 
-const compareReviews = (
-  a: Review,
-  b: Review,
+const compareItems = (
+  a: MediaItem,
+  b: MediaItem,
   sort: ReviewSortOption
 ): number => {
   switch (sort) {
     case "review-desc":
-      return b.review_date.localeCompare(a.review_date);
+      return b.reviewDate.localeCompare(a.reviewDate);
     case "review-asc":
-      return a.review_date.localeCompare(b.review_date);
+      return a.reviewDate.localeCompare(b.reviewDate);
     case "release-desc":
-      return b.release_date.localeCompare(a.release_date);
+      return b.releaseDate.localeCompare(a.releaseDate);
     case "release-asc":
-      return a.release_date.localeCompare(b.release_date);
+      return a.releaseDate.localeCompare(b.releaseDate);
     case "rating-desc":
       return b.rating - a.rating;
     case "rating-asc":
       return a.rating - b.rating;
     case "title-asc":
-      return a.album.localeCompare(b.album);
+      return a.title.localeCompare(b.title);
     case "title-desc":
-      return b.album.localeCompare(a.album);
+      return b.title.localeCompare(a.title);
   }
 };
 
-const matchesSearchTerm = (review: Review, term: string): boolean => {
+const matchesSearchTerm = (item: MediaItem, term: string): boolean => {
   if (!term) return true;
   const q = term.toLowerCase();
-  return (
-    review.album.toLowerCase().includes(q) ||
-    review.artist.some((a) => a.toLowerCase().includes(q)) ||
-    review.tracklist.some((track) => track.toLowerCase().includes(q))
-  );
+  return item.searchTerms.some((value) => value.toLowerCase().includes(q));
 };
 
 const matchesRating = (
-  review: Review,
+  item: MediaItem,
   ratingFilter: RatingFilterValue
 ): boolean => {
   if (ratingFilter === null) return true;
-  return review.rating === ratingFilter;
+  return item.rating === ratingFilter;
 };
 
-export const ReviewList = () => {
+interface ReviewListProps<TRow> {
+  config: MediaConfig<TRow>;
+}
+
+export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
   const enableAnimations = useUiStore((s) => s.enableAnimations);
   const sort = useUiStore((s) => s.reviewSort);
   const setReviewSort = useUiStore((s) => s.setReviewSort);
@@ -80,65 +75,67 @@ export const ReviewList = () => {
 
   const queryClient = useQueryClient();
   // Already have everything from an earlier visit, so the preview is dead weight.
-  const hasFullReviews =
-    queryClient.getQueryData(reviewKeys.publishedList()) !== undefined;
+  const hasFullRows =
+    queryClient.getQueryData(config.publishedListKey) !== undefined;
 
   const previewQuery = useQuery({
-    ...publishedReviewPreviewQuery(sort, ratingFilter),
-    enabled: !hasFullReviews,
+    queryKey: config.publishedPreviewKey(sort, ratingFilter),
+    queryFn: () => config.fetchPublishedPreview(sort, ratingFilter),
+    enabled: !hasFullRows,
   });
 
   const {
-    data: fullReviews,
+    data: fullRows,
     isPending,
     error,
   } = useQuery({
-    ...publishedReviewListQuery,
+    queryKey: config.publishedListKey,
+    queryFn: () => config.fetchPublishedList(),
     // Held back so the small response lands first; a failed preview must not
     // strand the real data, so an error unblocks it too.
-    enabled: hasFullReviews || previewQuery.isSuccess || previewQuery.isError,
+    enabled: hasFullRows || previewQuery.isSuccess || previewQuery.isError,
     placeholderData: previewQuery.data,
   });
 
   // The full set always wins. Placeholder data covers the handoff while the
   // full fetch is pending, and this fallback keeps the preview on screen if
   // that fetch fails outright.
-  const reviews = fullReviews ?? previewQuery.data ?? [];
+  const rows = fullRows ?? previewQuery.data ?? [];
 
-  if (isPending && reviews.length === 0) {
-    return (
-      <div className="mx-auto max-w-list py-16">
-        <Loader label="Loading reviews" />
-      </div>
+  const filtered = rows
+    .map(config.toMediaItem)
+    .filter(
+      (item) =>
+        matchesSearchTerm(item, debouncedTerm) &&
+        matchesRating(item, ratingFilter)
     );
-  }
 
-  // With a preview on screen there is still something worth reading, so only
-  // the total failure case replaces the list outright.
-  if (error && reviews.length === 0) {
-    return (
-      <div className="text-center max-w-list mx-auto">
-        <div className="text-red-400">
-          Failed to load reviews. Please try again.
-        </div>
-      </div>
-    );
-  }
-
-  const filtered = reviews.filter(
-    (review) =>
-      matchesSearchTerm(review, debouncedTerm) &&
-      matchesRating(review, ratingFilter)
-  );
-
-  const sorted = [...filtered].sort((a, b) => compareReviews(a, b, sort));
+  const sorted = [...filtered].sort((a, b) => compareItems(a, b, sort));
 
   const filterKey = [sort, debouncedTerm || "all", ratingFilter ?? "all"].join(
     ":"
   );
 
-  const list =
-    sorted.length === 0 ? (
+  const list = (() => {
+    if (isPending && rows.length === 0) {
+      return (
+        <div key="loading" className="py-16">
+          <Loader label={config.loadingLabel} />
+        </div>
+      );
+    }
+
+    // With a preview on screen there is still something worth reading, so only
+    // the total failure case replaces the list outright.
+    if (error && rows.length === 0) {
+      return (
+        <div key="error" className="text-center text-red-400">
+          {config.errorMessage}
+        </div>
+      );
+    }
+
+    return sorted.length === 0 ? (
       <motion.p
         key={`empty:${filterKey}`}
         className="text-sm text-main/60"
@@ -147,7 +144,7 @@ export const ReviewList = () => {
         exit={enableAnimations ? { opacity: 0 } : undefined}
         transition={listTransition}
       >
-        No reviews match
+        {config.emptyMessage}
       </motion.p>
     ) : (
       <motion.div
@@ -158,9 +155,9 @@ export const ReviewList = () => {
         exit={enableAnimations ? { opacity: 0 } : undefined}
         transition={listTransition}
       >
-        {sorted.map((review, index) => (
+        {sorted.map((item, index) => (
           <motion.div
-            key={review.id}
+            key={item.id}
             variants={fadeUp}
             initial={enableAnimations ? "hidden" : false}
             whileInView={enableAnimations ? "visible" : undefined}
@@ -168,11 +165,18 @@ export const ReviewList = () => {
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <ReviewCard review={review} showActions={false} index={index} />
+            <ReviewCard
+              item={item}
+              aspect={config.aspect}
+              metaLabel={config.metaLabel}
+              showActions={false}
+              index={index}
+            />
           </motion.div>
         ))}
       </motion.div>
     );
+  })();
 
   return (
     <div className="mx-auto flex max-w-list flex-col pb-12">

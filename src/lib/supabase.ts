@@ -42,6 +42,21 @@ export interface Review {
   updated_at: string;
 }
 
+export interface Film {
+  id: number;
+  title: string;
+  poster: string; // URL/path to image stored in Supabase
+  rating: 1 | 2 | 3 | 4 | 5;
+  director: string[];
+  cast_members: string[]; // "cast" is reserved in Postgres
+  description: string;
+  review_date: string; // Date as ISO string
+  release_date: string; // Theatrical release date as ISO string
+  status: ReviewStatus; // Drafts are hidden from the public site by RLS
+  tmdb_id: number | null;
+  created_at: string;
+}
+
 export type ReviewStatus = "draft" | "published";
 
 // CRUD service for review table
@@ -235,6 +250,103 @@ export const reviewService = {
   //     )
   //     .subscribe();
   // },
+};
+
+// CRUD service for film table
+export const filmService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from("film")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data as Film[];
+  },
+
+  // RLS already hides drafts from anonymous visitors; this filter also keeps
+  // them off the public page while an admin is signed in.
+  async getPublished() {
+    const { data, error } = await supabase
+      .from("film")
+      .select("*")
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data as Film[];
+  },
+
+  // Mirrors reviewService.getPublishedPreview: the slice has to be ordered the
+  // same way the list renders so it is a prefix rather than a reshuffle.
+  async getPublishedPreview({
+    limit,
+    column,
+    ascending,
+    rating,
+  }: {
+    limit: number;
+    column: string;
+    ascending: boolean;
+    rating: Film["rating"] | null;
+  }) {
+    let query = supabase.from("film").select("*").eq("status", "published");
+
+    if (rating !== null) {
+      query = query.eq("rating", rating);
+    }
+
+    const { data, error } = await query
+      .order(column, { ascending })
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data as Film[];
+  },
+
+  async getOne(id: number) {
+    const { data, error } = await supabase
+      .from("film")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data as Film;
+  },
+
+  async create(film: Omit<Film, "id" | "created_at">) {
+    const { data, error } = await supabase
+      .from("film")
+      .insert([film])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Film;
+  },
+
+  async update(
+    id: number,
+    updates: Partial<Omit<Film, "id" | "created_at">>
+  ) {
+    const { data, error } = await supabase
+      .from("film")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Film;
+  },
+
+  async delete(id: number) {
+    const { error } = await supabase.from("film").delete().eq("id", id);
+
+    if (error) throw error;
+  },
 };
 
 // Authentication utilities

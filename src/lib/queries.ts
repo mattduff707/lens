@@ -1,26 +1,9 @@
 import { queryOptions } from "@tanstack/react-query";
 import type { RatingFilterValue, ReviewSortOption } from "../store/ui";
-import { COVER_PRELOAD_COUNT, preloadCoverImages } from "./albumCover";
-import { reviewService } from "./supabase";
+import { filmService, reviewService } from "./supabase";
 
 /** How many reviews the first paint renders before the full set arrives. */
 export const REVIEW_PREVIEW_LIMIT = 30;
-
-// The list sorts client-side, so the preview has to order by the same field to
-// come back as a prefix of the final list instead of an unrelated slice.
-const SORT_COLUMNS: Record<
-  ReviewSortOption,
-  { column: string; ascending: boolean }
-> = {
-  "review-desc": { column: "review_date", ascending: false },
-  "review-asc": { column: "review_date", ascending: true },
-  "release-desc": { column: "release_date", ascending: false },
-  "release-asc": { column: "release_date", ascending: true },
-  "rating-desc": { column: "rating", ascending: false },
-  "rating-asc": { column: "rating", ascending: true },
-  "title-asc": { column: "album", ascending: true },
-  "title-desc": { column: "album", ascending: false },
-};
 
 // Review query keys
 export const reviewKeys = {
@@ -37,38 +20,22 @@ export const reviewKeys = {
     [...reviewKeys.all, "rating", rating] as const,
 };
 
-// Review queries
+// Film query keys
+export const filmKeys = {
+  all: ["film"] as const,
+  list: () => [...filmKeys.all, "list"] as const,
+  publishedList: () => [...filmKeys.all, "list", "published"] as const,
+  publishedPreview: (sort: ReviewSortOption, rating: RatingFilterValue) =>
+    [...filmKeys.all, "list", "published", "preview", sort, rating] as const,
+  item: (id: number) => [...filmKeys.all, "item", id] as const,
+};
+
+// Review queries. The public list and preview live on musicConfig, since the
+// shared list builds those two from the media config it is handed.
 export const reviewListQuery = queryOptions({
   queryKey: reviewKeys.list(),
   queryFn: () => reviewService.getAll(),
 });
-
-export const publishedReviewListQuery = queryOptions({
-  queryKey: reviewKeys.publishedList(),
-  queryFn: () => reviewService.getPublished(),
-});
-
-export const publishedReviewPreviewQuery = (
-  sort: ReviewSortOption,
-  rating: RatingFilterValue
-) =>
-  queryOptions({
-    queryKey: reviewKeys.publishedPreview(sort, rating),
-    queryFn: async () => {
-      const reviews = await reviewService.getPublishedPreview({
-        limit: REVIEW_PREVIEW_LIMIT,
-        rating,
-        ...SORT_COLUMNS[sort],
-      });
-      preloadCoverImages(
-        reviews
-          .slice(0, COVER_PRELOAD_COUNT)
-          .map((review) => review.album_cover)
-          .filter(Boolean)
-      );
-      return reviews;
-    },
-  });
 
 export const reviewItemQuery = (id: number) =>
   queryOptions({
@@ -94,13 +61,21 @@ export const reviewByRatingQuery = (rating: 1 | 2 | 3 | 4 | 5) =>
     queryFn: () => reviewService.getByRating(rating),
   });
 
+// Film queries
+export const filmListQuery = queryOptions({
+  queryKey: filmKeys.list(),
+  queryFn: () => filmService.getAll(),
+});
+
+export const filmItemQuery = (id: number) =>
+  queryOptions({
+    queryKey: filmKeys.item(id),
+    queryFn: () => filmService.getOne(id),
+  });
+
 // Review mutations
 export const createReviewMutation = () => ({
   mutationFn: reviewService.create,
-  onSuccess: () => {
-    // Invalidate review list queries
-    // This will be handled by the mutation hook
-  },
 });
 
 export const updateReviewMutation = () => ({
@@ -111,16 +86,27 @@ export const updateReviewMutation = () => ({
     id: number;
     updates: Parameters<typeof reviewService.update>[1];
   }) => reviewService.update(id, updates),
-  onSuccess: () => {
-    // Invalidate review list and item queries
-    // This will be handled by the mutation hook
-  },
 });
 
 export const deleteReviewMutation = () => ({
   mutationFn: (id: number) => reviewService.delete(id),
-  onSuccess: () => {
-    // Invalidate review list queries
-    // This will be handled by the mutation hook
-  },
+});
+
+// Film mutations
+export const createFilmMutation = () => ({
+  mutationFn: filmService.create,
+});
+
+export const updateFilmMutation = () => ({
+  mutationFn: ({
+    id,
+    updates,
+  }: {
+    id: number;
+    updates: Parameters<typeof filmService.update>[1];
+  }) => filmService.update(id, updates),
+});
+
+export const deleteFilmMutation = () => ({
+  mutationFn: (id: number) => filmService.delete(id),
 });

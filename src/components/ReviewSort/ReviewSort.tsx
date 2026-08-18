@@ -33,7 +33,7 @@ export const ReviewSort = ({
       onOpenChange={onOpenChange}
     >
       <Select.Trigger
-        aria-label="Sort albums"
+        aria-label="Sort reviews"
         className="inline-flex items-center gap-1.5 px-2 rounded-sm py-1 text-sm text-main/55 transition-colors hover:text-main focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-main/40 data-[state=open]:text-main"
       >
         <SortIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
