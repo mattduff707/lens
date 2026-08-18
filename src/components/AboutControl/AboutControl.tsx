@@ -21,7 +21,8 @@ export const AboutControl = () => (
         side="right"
         align="start"
         sideOffset={12}
-        className="z-50 w-[18.4rem] overflow-hidden rounded-sm border border-main/15 bg-secondary shadow-subtle data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="z-50 w-[18.4rem] overflow-hidden rounded-sm border border-main/15 bg-secondary shadow-subtle outline-none [-webkit-tap-highlight-color:transparent] data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
       >
         <img
           src={me}
