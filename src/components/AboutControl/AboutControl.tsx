@@ -2,6 +2,9 @@ import * as Popover from "@radix-ui/react-popover";
 import me from "../../assets/me.webp";
 import { PersonIcon } from "../icons";
 
+// Warm the cache on module load so the popover image is ready on first open.
+new Image().src = me;
+
 export const AboutControl = () => (
   <Popover.Root>
     <Popover.Trigger asChild>
@@ -23,6 +26,8 @@ export const AboutControl = () => (
         <img
           src={me}
           alt="Matthew Duffy"
+          width={800}
+          height={500}
           className="aspect-[16/10] w-full object-cover"
         />
         <div className="flex flex-col gap-1.5 p-4">
