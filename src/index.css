@@ -152,6 +152,12 @@ button {
 .shadow-subtle {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+/* Contrasting edge so stars meet 3:1 against the page background. */
+.star-outline {
+  stroke: var(--color-main);
+  stroke-width: 1.25px;
+}
 .visually-hidden:not(:focus):not(:active) {
   position: absolute;
   width: 1px;

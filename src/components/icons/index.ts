@@ -5,4 +5,5 @@ export { MenuIcon } from "./Menu";
 export { PaintingIcon } from "./Painting";
 export { PersonIcon } from "./Person";
 export { SortIcon } from "./Sort";
+export { StarIcon } from "./Star";
 export { MoonIcon, SunIcon } from "./Theme";

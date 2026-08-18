@@ -1,5 +1,6 @@
 import * as Select from "@radix-ui/react-select";
 import { useUiStore } from "../../store/ui";
+import { StarIcon } from "../icons";
 
 export type RatingFilterValue = 1 | 2 | 3 | 4 | 5 | null;
 
@@ -46,7 +47,7 @@ const Stars = ({
               enableAnimations ? { animationDelay: `${i * 0.12}s` } : undefined
             }
           >
-            ★
+            <StarIcon className="star-outline block size-[1em]" />
           </span>
         ))}
       </span>
@@ -54,7 +55,11 @@ const Stars = ({
   }
 
   return (
-    <span className="text-highlight tracking-[0.1em]">{"★".repeat(count)}</span>
+    <span className="inline-flex items-center gap-0.5 tracking-[0.1em] text-highlight">
+      {Array.from({ length: count }, (_, i) => (
+        <StarIcon key={i} className="star-outline block size-[1em]" />
+      ))}
+    </span>
   );
 };
 
@@ -86,7 +91,7 @@ export const ReviewRatingFilter = ({
           <>
             <span>All</span>
             <span className="text-highlight" aria-hidden="true">
-              ★
+              <StarIcon className="star-outline block size-[1em]" />
             </span>
           </>
         ) : (
