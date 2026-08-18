@@ -8,10 +8,14 @@ const DEBOUNCE_MS = 300;
 
 type ReviewSearchProps = {
   onDebouncedChange: (term: string) => void;
+  initialTerm?: string;
 };
 
-export const ReviewSearch = ({ onDebouncedChange }: ReviewSearchProps) => {
-  const [term, setTerm] = useState("");
+export const ReviewSearch = ({
+  onDebouncedChange,
+  initialTerm = "",
+}: ReviewSearchProps) => {
+  const [term, setTerm] = useState(initialTerm);
   const [focused, setFocused] = useState(false);
   const hasQuery = term.length > 0;
   const emphasized = focused || hasQuery;
@@ -39,7 +43,7 @@ export const ReviewSearch = ({ onDebouncedChange }: ReviewSearchProps) => {
         autoComplete="off"
         placeholder="Search"
         className={cn(
-          "w-full bg-transparent py-2 text-sm text-main pl-3 placeholder-main/40 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
+          "w-full bg-transparent py-2 text-base min-[800px]:text-sm text-main pl-3 placeholder-main/40 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
           hasQuery && "pr-8"
         )}
       />

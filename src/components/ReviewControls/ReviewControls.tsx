@@ -2,6 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useUiStore } from "../../store/ui";
+import { cn } from "../../util/style";
 import { FilterIcon } from "../icons";
 import { Navbar } from "../Navbar";
 import {
@@ -11,8 +12,11 @@ import {
 import { ReviewSearch } from "../ReviewSearch";
 import { ReviewSort, type ReviewSortOption } from "../ReviewSort";
 
+const DEFAULT_SORT: ReviewSortOption = "review-desc";
+
 type ReviewControlsProps = {
   onDebouncedChange: (term: string) => void;
+  searchTerm: string;
   sort: ReviewSortOption;
   onSortChange: (sort: ReviewSortOption) => void;
   ratingFilter: RatingFilterValue;
@@ -33,6 +37,7 @@ let hasPlayedIntro = false;
 
 export const ReviewControls = ({
   onDebouncedChange,
+  searchTerm,
   sort,
   onSortChange,
   ratingFilter,
@@ -63,6 +68,11 @@ export const ReviewControls = ({
     return () => observer.disconnect();
   }, []);
 
+  const activeCount =
+    (searchTerm.trim() ? 1 : 0) +
+    (ratingFilter !== null ? 1 : 0) +
+    (sort !== DEFAULT_SORT ? 1 : 0);
+
   return (
     <>
       <div ref={sentinelRef} className="h-0" aria-hidden="true" />
@@ -75,7 +85,10 @@ export const ReviewControls = ({
       >
         {/* Desktop layout: 800px and up */}
         <div className="hidden min-[800px]:flex items-center justify-between gap-4 bg-secondary py-4 min-[1100px]:px-0 px-0">
-          <ReviewSearch onDebouncedChange={onDebouncedChange} />
+          <ReviewSearch
+            onDebouncedChange={onDebouncedChange}
+            initialTerm={searchTerm}
+          />
           <Navbar />
           <div className="flex items-center">
             <ReviewRatingFilter
@@ -93,10 +106,24 @@ export const ReviewControls = ({
             <Popover.Trigger asChild>
               <button
                 type="button"
-                aria-label="Open filters"
-                className="flex h-8 w-8 items-center justify-center rounded-sm text-main/55 transition-colors hover:text-main"
+                aria-label={
+                  activeCount > 0
+                    ? `Open filters, ${activeCount} active`
+                    : "Open filters"
+                }
+                className={cn(
+                  "flex h-8 items-center justify-center rounded-sm text-main/55 transition-colors hover:text-main",
+                  activeCount > 0
+                    ? "gap-1 border border-main/30 px-2 text-main"
+                    : "w-8",
+                )}
               >
                 <FilterIcon className="h-6 w-6" />
+                {activeCount > 0 && (
+                  <span className="text-sm tabular-nums" aria-hidden="true">
+                    {activeCount}
+                  </span>
+                )}
               </button>
             </Popover.Trigger>
             <Popover.Portal>
@@ -114,7 +141,10 @@ export const ReviewControls = ({
                 }}
               >
                 <div className="flex flex-col gap-4">
-                  <ReviewSearch onDebouncedChange={onDebouncedChange} />
+                  <ReviewSearch
+                    onDebouncedChange={onDebouncedChange}
+                    initialTerm={searchTerm}
+                  />
                   <div className="flex items-center justify-between">
                     <ReviewRatingFilter
                       value={ratingFilter}

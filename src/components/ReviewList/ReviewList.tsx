@@ -182,6 +182,7 @@ export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
     <div className="mx-auto flex max-w-list flex-col pb-12">
       <ReviewControls
         onDebouncedChange={setDebouncedTerm}
+        searchTerm={debouncedTerm}
         sort={sort}
         onSortChange={setReviewSort}
         ratingFilter={ratingFilter}
