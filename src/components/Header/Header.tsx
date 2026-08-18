@@ -35,13 +35,16 @@ export const Header = () => {
           <RatingStars
             rating={1}
             filledOnly
-            className="align-text-bottom text-xs translate-y-[-2px]"
+            className="align-text-bottom text-xs translate-y-[-4px]"
           />{" "}
           review is not a negative, it just means it met the minimum threshold
           of enjoyment for me. If something is not here, it simply means I have
           not experienced it or it wasn't to my taste. Reviews with{" "}
-          <RatingStars rating={5} className="align-text-bottom text-xs" /> are
-          works that I'm especially attached to.
+          <RatingStars
+            rating={5}
+            className="align-text-bottom text-xs translate-y-[-3px]"
+          />{" "}
+          are works that I'm especially attached to.
         </motion.p>
       </div>
     </header>
