@@ -7,6 +7,7 @@ import {
   getArtworkUrl,
   getTracklist,
 } from "../../lib/itunes";
+import { uploadAlbumCover } from "../../lib/albumCover";
 import {
   createReviewMutation,
   deleteReviewMutation,
@@ -14,11 +15,7 @@ import {
   reviewListQuery,
   updateReviewMutation,
 } from "../../lib/queries";
-import {
-  type Review,
-  type ReviewStatus,
-  supabase,
-} from "../../lib/supabase";
+import { type Review, type ReviewStatus } from "../../lib/supabase";
 import { AlbumSearch } from "../AlbumSearch";
 
 interface ReviewModalProps {
@@ -198,28 +195,6 @@ export const ReviewModal = ({
     }
   }, [review, mode]);
 
-  // Upload file to Supabase storage
-  const uploadFile = async (file: File): Promise<string> => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `private/${fileName}`;
-
-    const { data, error } = await supabase.storage
-      .from("album-covers")
-      .upload(filePath, file);
-
-    if (error) {
-      throw error;
-    }
-
-    // Get the public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("album-covers").getPublicUrl(data.path);
-
-    return publicUrl;
-  };
-
   // Fill the form from an iTunes search result. Rating, description and
   // review_date are left alone since they are the reviewer's own input.
   const handleAlbumSelect = async (album: AlbumResult) => {
@@ -271,7 +246,7 @@ export const ReviewModal = ({
 
         // Upload file if one is selected
         if (selectedFile) {
-          albumCoverUrl = await uploadFile(selectedFile);
+          albumCoverUrl = await uploadAlbumCover(selectedFile);
         }
 
         // Filter out empty values

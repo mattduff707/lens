@@ -31,7 +31,7 @@ export const Header = () => {
           animate="visible"
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          Everything you see here is a piece of work I feel positively about. A{" "}
+          All the reviews here are works I enjoyed and felt positively about. A{" "}
           <RatingStars
             rating={1}
             filledOnly

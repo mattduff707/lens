@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import type { RatingFilterValue, ReviewSortOption } from "../store/ui";
+import { COVER_PRELOAD_COUNT, preloadCoverImages } from "./albumCover";
 import { reviewService } from "./supabase";
 
 /** How many reviews the first paint renders before the full set arrives. */
@@ -53,12 +54,20 @@ export const publishedReviewPreviewQuery = (
 ) =>
   queryOptions({
     queryKey: reviewKeys.publishedPreview(sort, rating),
-    queryFn: () =>
-      reviewService.getPublishedPreview({
+    queryFn: async () => {
+      const reviews = await reviewService.getPublishedPreview({
         limit: REVIEW_PREVIEW_LIMIT,
         rating,
         ...SORT_COLUMNS[sort],
-      }),
+      });
+      preloadCoverImages(
+        reviews
+          .slice(0, COVER_PRELOAD_COUNT)
+          .map((review) => review.album_cover)
+          .filter(Boolean)
+      );
+      return reviews;
+    },
   });
 
 export const reviewItemQuery = (id: number) =>

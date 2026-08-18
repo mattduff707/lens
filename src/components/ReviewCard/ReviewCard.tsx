@@ -1,3 +1,7 @@
+import {
+  COVER_EAGER_COUNT,
+  COVER_HIGH_PRIORITY_COUNT,
+} from "../../lib/albumCover";
 import { type Review } from "../../lib/supabase";
 import { RatingStars } from "../RatingStars";
 
@@ -6,6 +10,7 @@ interface ReviewCardProps {
   onEdit?: (review: Review) => void;
   onDelete?: (review: Review) => void;
   showActions?: boolean;
+  index?: number;
 }
 
 export const ReviewCard = ({
@@ -13,6 +18,7 @@ export const ReviewCard = ({
   onEdit,
   onDelete,
   showActions = false,
+  index = Infinity,
 }: ReviewCardProps) => {
   const formatDate = (dateString: string) => {
     const [year, month, day] = dateString.slice(0, 10).split("-").map(Number);
@@ -33,7 +39,10 @@ export const ReviewCard = ({
               alt={`${review.album} cover`}
               width={80}
               height={80}
-              loading="lazy"
+              loading={index < COVER_EAGER_COUNT ? "eager" : "lazy"}
+              fetchPriority={
+                index < COVER_HIGH_PRIORITY_COUNT ? "high" : "auto"
+              }
               decoding="async"
               className="h-20 w-20 object-cover"
               onError={(e) => {

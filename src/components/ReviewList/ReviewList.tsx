@@ -158,7 +158,7 @@ export const ReviewList = () => {
         exit={enableAnimations ? { opacity: 0 } : undefined}
         transition={listTransition}
       >
-        {sorted.map((review) => (
+        {sorted.map((review, index) => (
           <motion.div
             key={review.id}
             variants={fadeUp}
@@ -168,7 +168,7 @@ export const ReviewList = () => {
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <ReviewCard review={review} showActions={false} />
+            <ReviewCard review={review} showActions={false} index={index} />
           </motion.div>
         ))}
       </motion.div>
