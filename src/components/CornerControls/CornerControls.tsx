@@ -62,8 +62,8 @@ export const CornerControls = () => {
                 <div className="flex flex-col gap-3 min-[600px]:gap-4 [&_button]:h-[26px] [&_button]:w-[26px] [&_svg]:h-[22px] [&_svg]:w-[22px] min-[600px]:[&_button]:h-[34px] min-[600px]:[&_button]:w-[34px] min-[600px]:[&_svg]:h-[30px] min-[600px]:[&_svg]:w-[30px]">
                   <AnimationsToggle />
                   <ThemeToggle />
-                  <PaletteControl />
-                  <AboutControl />
+                  <PaletteControl align="end" />
+                  <AboutControl align="end" />
                 </div>
                 <button
                   type="button"

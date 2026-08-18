@@ -24,7 +24,11 @@ const COLORS = [
   },
 ] as const;
 
-export const PaletteControl = () => (
+type PaletteControlProps = {
+  align?: "start" | "end";
+};
+
+export const PaletteControl = ({ align = "start" }: PaletteControlProps) => (
   <Popover.Root>
     <Popover.Trigger asChild>
       <button
@@ -38,9 +42,10 @@ export const PaletteControl = () => (
     <Popover.Portal>
       <Popover.Content
         side="right"
-        align="start"
+        align={align}
         sideOffset={12}
-        className="z-50 w-48 rounded-sm border border-main/15 bg-secondary p-3 shadow-subtle data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="z-50 w-48 rounded-sm border border-main/15 bg-secondary p-3 shadow-subtle outline-none [-webkit-tap-highlight-color:transparent] data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
       >
         <p className="mb-2.5 text-sm font-medium tracking-wide text-main/60">
           Storied Colors

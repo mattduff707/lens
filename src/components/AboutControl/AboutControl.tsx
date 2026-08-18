@@ -5,7 +5,11 @@ import { PersonIcon } from "../icons";
 // Warm the cache on module load so the popover image is ready on first open.
 new Image().src = me;
 
-export const AboutControl = () => (
+type AboutControlProps = {
+  align?: "start" | "end";
+};
+
+export const AboutControl = ({ align = "start" }: AboutControlProps) => (
   <Popover.Root>
     <Popover.Trigger asChild>
       <button
@@ -19,7 +23,7 @@ export const AboutControl = () => (
     <Popover.Portal>
       <Popover.Content
         side="right"
-        align="start"
+        align={align}
         sideOffset={12}
         onOpenAutoFocus={(e) => e.preventDefault()}
         className="z-50 w-[18.4rem] overflow-hidden rounded-sm border border-main/15 bg-secondary shadow-subtle outline-none [-webkit-tap-highlight-color:transparent] data-[state=open]:animate-[tooltip-in_160ms_ease-out]"
