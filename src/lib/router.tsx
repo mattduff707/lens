@@ -42,9 +42,7 @@ const layoutRoute = createRoute({
       <Header />
 
       <main className="bg-secondary">
-        <div className=" bg-secondary p-4">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   ),

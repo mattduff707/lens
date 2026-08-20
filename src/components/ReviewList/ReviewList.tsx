@@ -138,7 +138,7 @@ export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
     return sorted.length === 0 ? (
       <motion.p
         key={`empty:${filterKey}`}
-        className="text-sm text-main/60"
+        className="text-sm text-main/60 px-4"
         initial={enableAnimations ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
         exit={enableAnimations ? { opacity: 0 } : undefined}
@@ -149,7 +149,7 @@ export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
     ) : (
       <motion.div
         key={filterKey}
-        className="grid gap-x-12 gap-y-8 lg:grid-cols-2"
+        className="grid gap-x-12 gap-y-8 lg:grid-cols-2 px-4"
         initial={enableAnimations ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
         exit={enableAnimations ? { opacity: 0 } : undefined}

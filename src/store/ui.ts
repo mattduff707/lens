@@ -15,25 +15,7 @@ export type ReviewSortOption =
 
 export type RatingFilterValue = 1 | 2 | 3 | 4 | 5 | null;
 
-const REVIEW_SORT_OPTIONS: readonly ReviewSortOption[] = [
-  "review-desc",
-  "review-asc",
-  "release-desc",
-  "release-asc",
-  "rating-desc",
-  "rating-asc",
-  "title-asc",
-  "title-desc",
-] as const;
-
 const DEFAULT_REVIEW_SORT: ReviewSortOption = "review-desc";
-
-const isReviewSortOption = (value: unknown): value is ReviewSortOption =>
-  typeof value === "string" &&
-  (REVIEW_SORT_OPTIONS as readonly string[]).includes(value);
-
-const isRatingFilterValue = (value: unknown): value is RatingFilterValue =>
-  value === null || (typeof value === "number" && value >= 1 && value <= 5);
 
 type UiStore = {
   enableAnimations: boolean;
@@ -50,8 +32,6 @@ type UiStore = {
 type PersistedUi = {
   enableAnimations?: boolean;
   theme?: Theme;
-  reviewSort?: ReviewSortOption;
-  reviewRatingFilter?: RatingFilterValue;
 };
 
 const STORAGE_KEY = "lens-ui";
@@ -89,23 +69,13 @@ const resolveInitialAnimations = (): boolean => {
   return !prefersReducedMotion();
 };
 
-const resolveInitialReviewSort = (): ReviewSortOption => {
-  const stored = readPersistedUi()?.reviewSort;
-  return isReviewSortOption(stored) ? stored : DEFAULT_REVIEW_SORT;
-};
-
-const resolveInitialRatingFilter = (): RatingFilterValue => {
-  const stored = readPersistedUi()?.reviewRatingFilter;
-  return isRatingFilterValue(stored) ? stored : null;
-};
-
 export const useUiStore = create<UiStore>()(
   persist(
     (set) => ({
       enableAnimations: resolveInitialAnimations(),
       theme: resolveInitialTheme(),
-      reviewSort: resolveInitialReviewSort(),
-      reviewRatingFilter: resolveInitialRatingFilter(),
+      reviewSort: DEFAULT_REVIEW_SORT,
+      reviewRatingFilter: null,
       setEnableAnimations: (enableAnimations) => set({ enableAnimations }),
       setTheme: (theme) => set({ theme }),
       toggleTheme: () =>
@@ -120,9 +90,17 @@ export const useUiStore = create<UiStore>()(
       partialize: (state) => ({
         enableAnimations: state.enableAnimations,
         theme: state.theme,
-        reviewSort: state.reviewSort,
-        reviewRatingFilter: state.reviewRatingFilter,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as PersistedUi | undefined;
+        return {
+          ...currentState,
+          ...(persisted?.theme !== undefined && { theme: persisted.theme }),
+          ...(persisted?.enableAnimations !== undefined && {
+            enableAnimations: persisted.enableAnimations,
+          }),
+        };
+      },
     }
   )
 );

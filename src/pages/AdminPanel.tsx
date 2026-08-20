@@ -67,13 +67,13 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="space-y-8 max-w-list mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-list mx-auto pb-12">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-main mb-2">Admin Panel</h1>
           <p className="text-main/70">Welcome back, {user.email}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/"
             className="bg-main/10 hover:bg-secondary/20 text-main border border-main font-medium px-4 py-2 rounded-lg transition-colors duration-200"
@@ -140,7 +140,7 @@ const AdminPanel = () => {
           </p>
           <Link
             to="/admin-panel/music"
-            className="inline-block bg-main hover:bg-main/80 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+            className="inline-block bg-main hover:bg-main/80 text-secondary font-medium px-4 py-2 rounded-lg transition-colors duration-200"
           >
             Manage Reviews
           </Link>
@@ -153,7 +153,7 @@ const AdminPanel = () => {
           </p>
           <Link
             to="/admin-panel/film"
-            className="inline-block bg-main hover:bg-main/80 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+            className="inline-block bg-main hover:bg-main/80 text-secondary font-medium px-4 py-2 rounded-lg transition-colors duration-200"
           >
             Manage Reviews
           </Link>

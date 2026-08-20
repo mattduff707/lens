@@ -84,7 +84,7 @@ export const ReviewControls = ({
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
       >
         {/* Desktop layout: 800px and up */}
-        <div className="hidden min-[800px]:flex items-center justify-between gap-4 bg-secondary py-4 min-[1100px]:px-0 px-0">
+        <div className="hidden min-[800px]:flex items-center justify-between gap-4 bg-secondary py-4 min-[1100px]:px-0 px-4">
           <ReviewSearch
             onDebouncedChange={onDebouncedChange}
             initialTerm={searchTerm}
@@ -100,7 +100,7 @@ export const ReviewControls = ({
         </div>
 
         {/* Mobile layout: below 800px */}
-        <div className="flex min-[800px]:hidden items-center justify-between bg-secondary py-4 px-0">
+        <div className="flex min-[800px]:hidden items-center justify-between bg-secondary py-4 px-4">
           <Navbar />
           <Popover.Root modal={true}>
             <Popover.Trigger asChild>
@@ -115,7 +115,7 @@ export const ReviewControls = ({
                   "flex h-8 items-center justify-center rounded-sm text-main/55 transition-colors hover:text-main",
                   activeCount > 0
                     ? "gap-1 border border-main/30 px-2 text-main"
-                    : "w-8",
+                    : "w-8"
                 )}
               >
                 <FilterIcon className="h-6 w-6" />
