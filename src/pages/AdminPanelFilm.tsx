@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { BackToTop } from "../components/BackToTop";
 import { FilmModal } from "../components/FilmModal";
 import { ReviewCard } from "../components/ReviewCard";
 import { ReviewSearch } from "../components/ReviewSearch";
@@ -200,6 +201,8 @@ const AdminPanelFilm = () => {
         mode={modalState.mode}
         film={modalState.film}
       />
+
+      <BackToTop />
     </div>
   );
 };

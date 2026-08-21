@@ -7,6 +7,7 @@ import {
   type ReviewSortOption,
   useUiStore,
 } from "../../store/ui";
+import { BackToTop } from "../BackToTop";
 import { Loader } from "../Loader";
 import { ReviewCard } from "../ReviewCard";
 import { ReviewControls } from "../ReviewControls";
@@ -194,6 +195,8 @@ export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
       ) : (
         list
       )}
+
+      <BackToTop />
     </div>
   );
 };

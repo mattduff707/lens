@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { BackToTop } from "../components/BackToTop";
 import { ReviewCard } from "../components/ReviewCard";
 import { ReviewModal } from "../components/ReviewModal";
 import { ReviewSearch } from "../components/ReviewSearch";
@@ -203,6 +204,8 @@ const AdminPanelMusic = () => {
         mode={modalState.mode}
         review={modalState.review}
       />
+
+      <BackToTop />
     </div>
   );
 };

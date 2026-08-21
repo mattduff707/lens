@@ -1,4 +1,5 @@
 export { AnimationsOffIcon, AnimationsOnIcon } from "./Animations";
+export { ArrowUpIcon } from "./ArrowUp";
 export { CloseIcon } from "./Close";
 export { FilterIcon } from "./Filter";
 export { MenuIcon } from "./Menu";
