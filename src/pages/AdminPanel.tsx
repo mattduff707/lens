@@ -1,8 +1,19 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { filmKeys, filmListQuery, reviewListQuery } from "../lib/queries";
-import { authService, filmService } from "../lib/supabase";
+import {
+  filmKeys,
+  filmListQuery,
+  recommendationRequestKeys,
+  recommendationRequestListQuery,
+  reviewListQuery,
+} from "../lib/queries";
+import {
+  authService,
+  filmService,
+  recommendationEmailService,
+  type RecommendationRequest,
+} from "../lib/supabase";
 
 const AdminPanel = () => {
   const [user, setUser] = useState<{ email: string } | null>(null);
@@ -12,6 +23,11 @@ const AdminPanel = () => {
     success: boolean;
     message: string;
   } | null>(null);
+  const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
+  const [responseText, setResponseText] = useState("");
+  const [showPendingOnly, setShowPendingOnly] = useState(true);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -19,8 +35,10 @@ const AdminPanel = () => {
   const { data: reviews = [], isLoading: reviewsLoading } =
     useQuery(reviewListQuery);
   const { data: films = [], isLoading: filmsLoading } = useQuery(filmListQuery);
+  const { data: recommendationRequests = [], isLoading: requestsLoading } =
+    useQuery(recommendationRequestListQuery);
 
-  const statsLoading = reviewsLoading || filmsLoading;
+  const statsLoading = reviewsLoading || filmsLoading || requestsLoading;
   const totalCount = reviews.length + films.length;
   const ratings = [...reviews, ...films].map((entry) => entry.rating);
   // Both lists arrive ordered by created_at desc, so only the two heads can win.
@@ -28,6 +46,50 @@ const AdminPanel = () => {
     ...reviews.slice(0, 1).map((r) => ({ title: r.album, at: r.created_at })),
     ...films.slice(0, 1).map((f) => ({ title: f.title, at: f.created_at })),
   ].sort((a, b) => b.at.localeCompare(a.at))[0];
+
+  const pendingRequests = recommendationRequests.filter((r) => !r.has_responded);
+  const filteredRequests = showPendingOnly
+    ? pendingRequests
+    : recommendationRequests;
+
+  const handleSendResponse = async (request: RecommendationRequest) => {
+    if (!responseText.trim()) {
+      setSendError("Please write a response before sending");
+      return;
+    }
+
+    setSendingEmail(true);
+    setSendError(null);
+
+    try {
+      await recommendationEmailService.sendResponse({
+        requestId: request.id,
+        recipientEmail: request.email,
+        recipientName: request.name,
+        responseText: responseText.trim(),
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: recommendationRequestKeys.all,
+      });
+      setExpandedRequest(null);
+      setResponseText("");
+    } catch (error) {
+      setSendError(
+        error instanceof Error ? error.message : "Failed to send email"
+      );
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   useEffect(() => {
     // Check if user is authenticated
@@ -116,7 +178,7 @@ const AdminPanel = () => {
       </div>
 
       {/* Dashboard Stats */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <div className="bg-main/5 border border-main/20 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-main mb-2">
             Total Reviews
@@ -146,9 +208,19 @@ const AdminPanel = () => {
 
         <div className="bg-main/5 border border-main/20 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-main mb-2">
+            Pending Requests
+          </h3>
+          <div className="text-3xl font-bold text-main mb-2">
+            {statsLoading ? "..." : pendingRequests.length}
+          </div>
+          <p className="text-main/70 text-sm">Awaiting response</p>
+        </div>
+
+        <div className="bg-main/5 border border-main/20 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-main mb-2">
             Latest Review
           </h3>
-          <div className="text-lg font-semibold text-main mb-2">
+          <div className="text-lg font-semibold text-main mb-2 truncate">
             {statsLoading ? "Loading..." : latest ? latest.title : "None"}
           </div>
           <p className="text-main/70 text-sm">Most recent publication</p>
@@ -184,6 +256,144 @@ const AdminPanel = () => {
             Manage Reviews
           </Link>
         </div>
+      </div>
+
+      {/* Recommendation Requests */}
+      <div className="bg-main/5 border border-main/20 rounded-lg p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <h2 className="text-xl font-semibold text-main">
+            Recommendation Requests
+          </h2>
+          <label className="flex items-center gap-2 text-sm text-main/70 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPendingOnly}
+              onChange={(e) => setShowPendingOnly(e.target.checked)}
+              className="rounded border-main/30"
+            />
+            Show pending only
+          </label>
+        </div>
+
+        {requestsLoading ? (
+          <p className="text-main/70">Loading requests...</p>
+        ) : filteredRequests.length === 0 ? (
+          <p className="text-main/70">
+            {showPendingOnly
+              ? "No pending requests"
+              : "No recommendation requests yet"}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {filteredRequests.map((request) => (
+              <div
+                key={request.id}
+                className="border border-main/20 rounded-lg overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedRequest(
+                      expandedRequest === request.id ? null : request.id
+                    )
+                  }
+                  className="w-full p-4 text-left hover:bg-main/5 transition-colors"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-main">
+                        {request.name}
+                      </span>
+                      <span className="text-main/50 text-sm truncate max-w-[200px]">
+                        {request.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-main/50 text-sm">
+                        {formatDate(request.created_at)}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          request.has_responded
+                            ? "bg-green-100 text-green-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {request.has_responded ? "Responded" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                {expandedRequest === request.id && (
+                  <div className="border-t border-main/20 p-4 bg-secondary/50">
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-main/70 mb-2">
+                        What they like:
+                      </h4>
+                      <p className="text-main whitespace-pre-wrap">
+                        {request.what_you_like}
+                      </p>
+                    </div>
+
+                    {request.response && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-main/70 mb-2">
+                          Your response:
+                        </h4>
+                        <p className="text-main whitespace-pre-wrap">
+                          {request.response}
+                        </p>
+                      </div>
+                    )}
+
+                    {!request.has_responded && (
+                      <div className="space-y-3">
+                        <div>
+                          <label
+                            htmlFor={`response-${request.id}`}
+                            className="block text-sm font-medium text-main/70 mb-2"
+                          >
+                            Your response{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id={`response-${request.id}`}
+                            value={responseText}
+                            onChange={(e) => {
+                              setResponseText(e.target.value);
+                              if (sendError) setSendError(null);
+                            }}
+                            rows={5}
+                            disabled={sendingEmail}
+                            className="w-full px-3 py-2 bg-secondary border border-main/30 rounded-lg text-main placeholder-main/40 focus:outline-none focus:border-main/60 resize-vertical disabled:opacity-50"
+                            placeholder="Write your recommendation response here. This will be sent to the user's email."
+                          />
+                        </div>
+                        {sendError && (
+                          <p className="text-red-500 text-sm">{sendError}</p>
+                        )}
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleSendResponse(request)}
+                            disabled={sendingEmail || !responseText.trim()}
+                            className="bg-main hover:bg-main/80 disabled:opacity-50 disabled:cursor-not-allowed text-secondary font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+                          >
+                            {sendingEmail ? "Sending..." : "Send Response"}
+                          </button>
+                          <span className="text-main/50 text-sm">
+                            Email will be sent to {request.email}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Utilities */}

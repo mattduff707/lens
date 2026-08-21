@@ -59,6 +59,16 @@ export interface Film {
 
 export type ReviewStatus = "draft" | "published";
 
+export interface RecommendationRequest {
+  id: number;
+  name: string;
+  email: string;
+  what_you_like: string;
+  has_responded: boolean;
+  response: string | null;
+  created_at: string;
+}
+
 // CRUD service for review table
 export const reviewService = {
   // Get all reviews
@@ -370,6 +380,76 @@ export const filmService = {
     }
 
     return films.length;
+  },
+};
+
+// CRUD service for recommendation_request table
+export const recommendationRequestService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from("recommendation_request")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data as RecommendationRequest[];
+  },
+
+  async create(
+    request: Omit<RecommendationRequest, "id" | "has_responded" | "response" | "created_at">
+  ) {
+    const { data, error } = await supabase
+      .from("recommendation_request")
+      .insert([request])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as RecommendationRequest;
+  },
+
+  async update(
+    id: number,
+    updates: Partial<Pick<RecommendationRequest, "has_responded" | "response">>
+  ) {
+    const { data, error } = await supabase
+      .from("recommendation_request")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as RecommendationRequest;
+  },
+};
+
+// Recommendation response email service
+export interface SendRecommendationResponseParams {
+  requestId: number;
+  recipientEmail: string;
+  recipientName: string;
+  responseText: string;
+}
+
+export const recommendationEmailService = {
+  async sendResponse(params: SendRecommendationResponseParams) {
+    const { data, error } = await supabase.functions.invoke(
+      "send-recommendation-response",
+      {
+        body: params,
+      }
+    );
+
+    if (error) {
+      throw new Error(error.message || "Failed to send recommendation response");
+    }
+
+    if (data?.error) {
+      throw new Error(data.error);
+    }
+
+    return data;
   },
 };
 

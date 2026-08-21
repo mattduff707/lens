@@ -1,6 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import type { RatingFilterValue, ReviewSortOption } from "../store/ui";
-import { filmService, reviewService } from "./supabase";
+import {
+  filmService,
+  recommendationRequestService,
+  reviewService,
+} from "./supabase";
 
 /** How many reviews the first paint renders before the full set arrives. */
 export const REVIEW_PREVIEW_LIMIT = 30;
@@ -28,6 +32,12 @@ export const filmKeys = {
   publishedPreview: (sort: ReviewSortOption, rating: RatingFilterValue) =>
     [...filmKeys.all, "list", "published", "preview", sort, rating] as const,
   item: (id: number) => [...filmKeys.all, "item", id] as const,
+};
+
+// Recommendation request query keys
+export const recommendationRequestKeys = {
+  all: ["recommendationRequest"] as const,
+  list: () => [...recommendationRequestKeys.all, "list"] as const,
 };
 
 // Review queries. The public list and preview live on musicConfig, since the
@@ -109,4 +119,25 @@ export const updateFilmMutation = () => ({
 
 export const deleteFilmMutation = () => ({
   mutationFn: (id: number) => filmService.delete(id),
+});
+
+// Recommendation request queries
+export const recommendationRequestListQuery = queryOptions({
+  queryKey: recommendationRequestKeys.list(),
+  queryFn: () => recommendationRequestService.getAll(),
+});
+
+// Recommendation request mutations
+export const createRecommendationRequestMutation = () => ({
+  mutationFn: recommendationRequestService.create,
+});
+
+export const updateRecommendationRequestMutation = () => ({
+  mutationFn: ({
+    id,
+    updates,
+  }: {
+    id: number;
+    updates: Parameters<typeof recommendationRequestService.update>[1];
+  }) => recommendationRequestService.update(id, updates),
 });

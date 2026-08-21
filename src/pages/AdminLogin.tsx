@@ -38,15 +38,15 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-main flex items-center justify-center px-4">
-      <div className="bg-secondary/5 border border-secondary/20 rounded-lg p-8 w-full max-w-md">
+      <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-main mb-2">Admin Login</h1>
-          <p className="text-main/70">Sign in to manage reviews</p>
+          <h1 className="text-3xl font-bold text-secondary mb-2">Admin Login</h1>
+          <p className="text-secondary/70">Sign in to manage reviews</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-main font-medium mb-2">
+            <label htmlFor="email" className="block text-secondary font-medium mb-2">
               Email
             </label>
             <input
@@ -55,7 +55,7 @@ const AdminLogin = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-main border border-secondary/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
+              className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main placeholder-main/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
               placeholder="Enter your email"
             />
           </div>
@@ -63,7 +63,7 @@ const AdminLogin = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-main font-medium mb-2"
+              className="block text-secondary font-medium mb-2"
             >
               Password
             </label>
@@ -73,7 +73,7 @@ const AdminLogin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-main border border-secondary/30 rounded-lg text-main placeholder-secondary/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
+              className="w-full px-4 py-3 bg-secondary border border-main/30 rounded-lg text-main placeholder-main/50 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-colors"
               placeholder="Enter your password"
             />
           </div>
@@ -87,7 +87,7 @@ const AdminLogin = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-highlight hover:bg-highlight/80 disabled:bg-highlight/50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+            className="w-full bg-highlight hover:bg-highlight/80 disabled:bg-highlight/50 disabled:cursor-not-allowed text-secondary font-medium py-3 px-4 rounded-lg transition-colors duration-200"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
@@ -96,7 +96,7 @@ const AdminLogin = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate({ to: "/" })}
-            className="text-main/70 hover:text-main transition-colors duration-200 text-sm"
+            className="text-secondary/70 hover:text-secondary transition-colors duration-200 text-sm"
           >
             ← Back to Music
           </button>
