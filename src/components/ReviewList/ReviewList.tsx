@@ -9,6 +9,7 @@ import {
 } from "../../store/ui";
 import { BackToTop } from "../BackToTop";
 import { Loader } from "../Loader";
+import { RequestRecommendation } from "../RequestRecommendation";
 import { ReviewCard } from "../ReviewCard";
 import { ReviewControls } from "../ReviewControls";
 
@@ -180,7 +181,7 @@ export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
   })();
 
   return (
-    <div className="mx-auto flex max-w-list flex-col pb-12">
+    <div className="mx-auto flex max-w-list flex-col pb-28">
       <ReviewControls
         onDebouncedChange={setDebouncedTerm}
         searchTerm={debouncedTerm}
@@ -196,6 +197,7 @@ export const ReviewList = <TRow,>({ config }: ReviewListProps<TRow>) => {
         list
       )}
 
+      <RequestRecommendation />
       <BackToTop />
     </div>
   );
