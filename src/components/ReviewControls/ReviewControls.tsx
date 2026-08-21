@@ -84,12 +84,14 @@ export const ReviewControls = ({
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
       >
         {/* Desktop layout: 800px and up */}
-        <div className="hidden min-[800px]:flex items-center justify-between gap-4 bg-secondary py-4 min-[1100px]:px-0 px-4">
+        <div className="hidden min-[800px]:flex relative items-center justify-between gap-4 bg-secondary py-4 min-[1100px]:px-0 px-4">
           <ReviewSearch
             onDebouncedChange={onDebouncedChange}
             initialTerm={searchTerm}
           />
-          <Navbar />
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Navbar />
+          </div>
           <div className="flex items-center">
             <ReviewRatingFilter
               value={ratingFilter}

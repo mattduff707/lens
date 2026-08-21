@@ -42,8 +42,8 @@ export const BackToTop = () => {
       aria-label="Back to top"
       className={cn(
         "fixed bottom-4 z-50 flex h-[46px] w-[46px] min-[600px]:h-[50px] min-[600px]:w-[50px] items-center justify-center rounded-sm border border-main/30 bg-secondary text-main/55 shadow-subtle transition-colors hover:text-main focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-main/40",
-        // Mobile: viewport corner. Desktop: just past the centered list, clamped so it never leaves the screen.
-        "right-4 min-[1100px]:right-auto min-[1100px]:left-[min(calc(50%+var(--container-list,1000px)/2+0.75rem),calc(100%-4.25rem))]"
+        // Mobile: viewport corner. Desktop: just past the left edge of the centered list, clamped so it never leaves the screen.
+        "right-4 min-[1100px]:right-[min(calc(50%+var(--container-list,1000px)/2+0.75rem),calc(100%-4.25rem))]"
       )}
       initial={enableAnimations ? fade.initial : false}
       animate={fade.animate}

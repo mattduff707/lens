@@ -347,6 +347,30 @@ export const filmService = {
 
     if (error) throw error;
   },
+
+  async syncReviewDatesToReleaseDates() {
+    const { data: films, error: fetchError } = await supabase
+      .from("film")
+      .select("id, release_date");
+
+    if (fetchError) throw fetchError;
+
+    const updates = films.map((film) =>
+      supabase
+        .from("film")
+        .update({ review_date: film.release_date })
+        .eq("id", film.id)
+    );
+
+    const results = await Promise.all(updates);
+    const errors = results.filter((r) => r.error);
+
+    if (errors.length > 0) {
+      throw new Error(`Failed to update ${errors.length} film(s)`);
+    }
+
+    return films.length;
+  },
 };
 
 // Authentication utilities

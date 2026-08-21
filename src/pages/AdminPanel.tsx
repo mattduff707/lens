@@ -1,13 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { filmListQuery, reviewListQuery } from "../lib/queries";
-import { authService } from "../lib/supabase";
+import { filmKeys, filmListQuery, reviewListQuery } from "../lib/queries";
+import { authService, filmService } from "../lib/supabase";
 
 const AdminPanel = () => {
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncingDates, setSyncingDates] = useState(false);
+  const [syncResult, setSyncResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch reviews for stats
   const { data: reviews = [], isLoading: reviewsLoading } =
@@ -51,6 +57,26 @@ const AdminPanel = () => {
       navigate({ to: "/" });
     } catch (error) {
       console.error("Sign out failed:", error);
+    }
+  };
+
+  const handleSyncFilmDates = async () => {
+    setSyncingDates(true);
+    setSyncResult(null);
+    try {
+      const count = await filmService.syncReviewDatesToReleaseDates();
+      await queryClient.invalidateQueries({ queryKey: filmKeys.all });
+      setSyncResult({
+        success: true,
+        message: `Updated ${count} film review date${count === 1 ? "" : "s"}`,
+      });
+    } catch (error) {
+      setSyncResult({
+        success: false,
+        message: error instanceof Error ? error.message : "Update failed",
+      });
+    } finally {
+      setSyncingDates(false);
     }
   };
 
@@ -157,6 +183,34 @@ const AdminPanel = () => {
           >
             Manage Reviews
           </Link>
+        </div>
+      </div>
+
+      {/* Utilities */}
+      <div className="bg-main/5 border border-main/20 rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-main mb-4">Utilities</h2>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <button
+              onClick={handleSyncFilmDates}
+              disabled={syncingDates}
+              className="bg-main/10 hover:bg-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed text-main border border-main font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+            >
+              {syncingDates ? "Syncing..." : "Sync film review dates to release dates"}
+            </button>
+            {syncResult && (
+              <span
+                className={
+                  syncResult.success ? "text-green-600" : "text-red-500"
+                }
+              >
+                {syncResult.message}
+              </span>
+            )}
+          </div>
+          <p className="text-main/50 text-sm">
+            Sets every film's review date to match its release date
+          </p>
         </div>
       </div>
     </div>
