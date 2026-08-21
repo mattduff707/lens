@@ -13,6 +13,7 @@ import AdminPanelFilm from "../pages/AdminPanelFilm";
 import AdminPanelMusic from "../pages/AdminPanelMusic";
 import Film from "../pages/Film";
 import Music from "../pages/Music";
+import Recommendation from "../pages/Recommendation";
 
 const isDev = import.meta.env.DEV;
 
@@ -62,6 +63,13 @@ const filmRoute = createRoute({
   component: Film,
 });
 
+// Recommendation request route
+const recommendationRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: "/recommendation",
+  component: Recommendation,
+});
+
 // Admin panel route (with navbar)
 const adminPanelRoute = createRoute({
   getParentRoute: () => layoutRoute,
@@ -95,6 +103,7 @@ const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([
     musicRoute,
     filmRoute,
+    recommendationRoute,
     adminPanelRoute,
     adminPanelMusicRoute,
     adminPanelFilmRoute,

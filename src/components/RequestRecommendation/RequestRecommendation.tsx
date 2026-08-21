@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { CursiveUnderline } from "../CursiveUnderline";
 
@@ -5,8 +6,8 @@ export const RequestRecommendation = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <button
-      type="button"
+    <Link
+      to="/recommendation"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
@@ -24,6 +25,6 @@ export const RequestRecommendation = () => {
           )}
         </span>
       </span>
-    </button>
+    </Link>
   );
 };
